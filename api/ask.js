@@ -659,6 +659,49 @@ async function callGPT(messages) {
 }
 
 // ============================================================
+// USER SIGNAL EXTRACTOR
+// Reads what the user is actually dealing with beneath the question
+// Returns a plain-language situation description for prompt injection
+// ============================================================
+function extractUserSignal(q) {
+  const lower = q.toLowerCase();
+
+  // Failure / not working
+  if (/not working|doesn.t work|isn.t working|failed|failing|nothing.s changing|no change|no results/.test(lower))
+    return 'user is experiencing failure or lack of results and is questioning whether this works';
+
+  // Confusion / doesn't understand
+  if (/don.t understand|doesn.t make sense|confused|confusing|lost|unclear|can.t figure/.test(lower))
+    return 'user is genuinely confused and needs clarity, not correction';
+
+  // Frustration / giving up
+  if (/tired of|giving up|can.t keep|why bother|what.s the point|fed up|done trying/.test(lower))
+    return 'user is frustrated and close to giving up -- needs to be steadied, not lectured';
+
+  // Guilt / shame
+  if (/feel guilty|feel ashamed|keep sinning|messed up|failed again|too far gone|not good enough/.test(lower))
+    return 'user is dealing with guilt or shame and may feel disqualified -- needs truth that restores';
+
+  // Doubt / questioning
+  if (/don.t know if|not sure|wondering if|questioning|doubt|really true/.test(lower))
+    return 'user is in a season of doubt and needs grounded, specific truth -- not generic reassurance';
+
+  // Pride / resistance
+  if (/i think|i believe|i don.t think|i disagree|that.s not right|why should i/.test(lower))
+    return 'user is confident in their own position -- needs direct truth that cuts through the assumption without attacking';
+
+  // Desire / wanting something
+  if (/how do i|i want to|i need to|help me|show me|teach me/.test(lower))
+    return 'user wants practical instruction -- give them something they can actually do';
+
+  // Pain / emotional
+  if (/hurting|hurt|broken|alone|scared|hopeless|depressed|pain|suffering/.test(lower))
+    return 'user is in emotional pain -- begin where they are, then move toward truth';
+
+  return 'user is asking a genuine question and needs a clear, grounded answer';
+}
+
+// ============================================================
 // TONE CLASSIFIER
 // Detects whether the user is SEEKING, STRUGGLING, or CORRECTING
 // This drives HOW the response opens and flows -- not what it says
@@ -690,9 +733,11 @@ function classifyTone(q) {
 
 async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null) {
 
-  // Classify tone to drive HOW we respond -- not what content we use
+  // Classify tone and extract user signal
   const toneClass = classifyTone(question);
+  const userSignal = extractUserSignal(question);
   console.log('[GP73 TONE]', toneClass);
+  console.log('[GP73 SIGNAL]', userSignal);
 
   // Build tone-specific instruction -- no hardcoded openers, no templates
   const toneInstruction = toneClass === 'SEEKING'
@@ -755,9 +800,18 @@ ${conversationContext}
 `
     : '';
 
-  const userPrompt = `${conversationNote}Current question: "${question}"
+  const userPrompt = `${conversationNote}USER SITUATION: ${userSignal}
 
-Respond directly and naturally. Use the teaching context. Do not guess or generalize beyond what is provided. If the current question follows from a prior turn, acknowledge that naturally but keep focus on what they're asking now.`;
+Question: "${question}"
+
+RESPONSE TARGETING:
+- Your DIRECT ANSWER must address the user's actual situation, not just the topic in the abstract
+- Your TEACHING must connect explicitly back to what the user is dealing with
+- Your APPLICATION must be specific to their condition -- not generic advice like "pray more" or "read the Word" in isolation
+- Reflect their wording and situation naturally, without awkwardly copying it
+- The person should feel: "This was said FOR me"
+
+Respond directly and naturally. Use the teaching context. Do not guess or generalize beyond what is provided.`;
 
   const messages = [
     { role: 'system', content: groundedSystem },
