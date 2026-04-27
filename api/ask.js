@@ -588,17 +588,34 @@ async function queryTeachings(question) {
     })));
 
     // STEP 6 — Build context block
-    // If top result is significantly better, use only that teaching
-    const topSim = top3[0]?.similarity || 0;
-    const secondSim = top3[1]?.similarity || 0;
-    const useOnlyTop = (topSim - secondSim) > 0.12; // clear winner — don't mix teachings
+    // PRIMARY SOURCE: always the top match (highest similarity + keyword alignment)
+    // SECONDARY: only included if it shares the same core idea as primary
+    //   -- measured by title similarity or significant keyword overlap
+    // If secondary conflicts or diverges, discard it. Clarity > coverage.
+    const primary = top3[0];
+    const primaryText = (primary.content || '').replace(/\u0000/g, '').trim();
+    const primaryTitle = (primary.title || '').toLowerCase();
 
-    const selected = useOnlyTop ? top3.slice(0, 1) : top3;
-    console.log('[GP73 RAG]', useOnlyTop ? 'Single teaching mode' : `Multi-teaching mode (${selected.length})`);
+    const reinforcing = top3.slice(1).filter(d => {
+      const secTitle = (d.title || '').toLowerCase();
+      const secText = (d.content || '').toLowerCase();
+      // Keep secondary only if title overlaps or shares 3+ key terms with primary
+      const titleOverlap = primaryTitle.split(' ').filter(w => w.length > 3 && secTitle.includes(w)).length;
+      const primaryWords = primaryText.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+      const termOverlap = primaryWords.filter(w => secText.includes(w)).length;
+      const keepIt = titleOverlap >= 1 || termOverlap >= 15;
+      if (!keepIt) console.log(`[GP73 RAG] Discarding divergent teaching: ${d.title}`);
+      return keepIt;
+    }).slice(0, 1); // max 1 reinforcing chunk
+
+    const selected = [primary, ...reinforcing];
+    console.log('[GP73 RAG]', selected.length === 1 ? 'Single source' : `Primary + 1 reinforcing chunk`);
+    console.log('[GP73 RAG] Primary:', primary.title);
 
     const context = selected.map((d, i) => {
       const text = (d.content || '').replace(/\u0000/g, '').trim();
-      return `[Teaching ${i + 1}: ${d.title || 'Untitled'}]\n${text.slice(0, 1400)}`;
+      const label = i === 0 ? `[Primary Teaching: ${d.title || 'Untitled'}]` : `[Supporting: ${d.title || 'Untitled'}]`;
+      return `${label}\n${text.slice(0, i === 0 ? 1600 : 800)}`;
     }).join('\n\n---\n\n');
 
     return context;
