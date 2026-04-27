@@ -1,57 +1,41 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!doctype html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.3">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px '.AppleSystemUIFontMonospaced'; color: #2e2d33; -webkit-text-stroke: #2e2d33; background-color: #e7eaec}
-    span.s1 {font-kerning: none}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GP73 Chat</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; background:#0b0b0b; color:#f4f4f4; }
+    textarea, button, a { font: inherit; }
+    textarea { width: 100%; min-height: 100px; margin: 12px 0; padding: 12px; border-radius: 10px; border:1px solid #333; background:#111; color:#fff; }
+    button, a.btn { display:inline-block; padding: 12px 16px; border-radius:10px; border:0; background:#d7b46a; color:#111; text-decoration:none; font-weight:700; }
+    pre { white-space: pre-wrap; background:#111; padding:16px; border-radius:10px; border:1px solid #333; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .muted { color:#aaa; }
   </style>
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!doctype html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="utf-8" /&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;GP73 Chat&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;style&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; background:#0b0b0b; color:#f4f4f4; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>textarea, button, a { font: inherit; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>textarea { width: 100%; min-height: 100px; margin: 12px 0; padding: 12px; border-radius: 10px; border:1px solid #333; background:#111; color:#fff; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>button, a.btn { display:inline-block; padding: 12px 16px; border-radius:10px; border:0; background:#d7b46a; color:#111; text-decoration:none; font-weight:700; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>pre { white-space: pre-wrap; background:#111; padding:16px; border-radius:10px; border:1px solid #333; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.muted { color:#aaa; }</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h1&gt;GP73&lt;/h1&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;p class="muted"&gt;Ask a question. Answers come from Supabase first, then bible-api.com fallback.&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;textarea id="q" placeholder="Ask GP73..."&gt;&lt;/textarea&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="row"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button id="ask"&gt;Ask&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;a class="btn" href="https://stan.store/iamgodsprisoner" target="_blank" rel="noreferrer"&gt;Go deeper →&lt;/a&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;h3&gt;Response&lt;/h3&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;pre id="out"&gt;Ready.&lt;/pre&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;script&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const q = document.getElementById('q');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const out = document.getElementById('out');</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>document.getElementById('ask').onclick = async () =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>out.textContent = 'Thinking...';</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const r = await fetch('/api/ask', {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>method: 'POST',</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>headers: { 'Content-Type': 'application/json' },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body: JSON.stringify({ question: q.value })</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>out.textContent = JSON.stringify(await r.json(), null, 2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+  <h1>GP73</h1>
+  <p class="muted">Ask a question. Answers come from Supabase first, then bible-api.com fallback.</p>
+  <textarea id="q" placeholder="Ask GP73..."></textarea>
+  <div class="row">
+    <button id="ask">Ask</button>
+    <a class="btn" href="https://stan.store/iamgodsprisoner" target="_blank" rel="noreferrer">Go deeper →</a>
+  </div>
+  <h3>Response</h3>
+  <pre id="out">Ready.</pre>
+  <script>
+    const q = document.getElementById('q');
+    const out = document.getElementById('out');
+    document.getElementById('ask').onclick = async () => {
+      out.textContent = 'Thinking...';
+      const r = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q.value })
+      });
+      out.textContent = JSON.stringify(await r.json(), null, 2);
+    };
+  </script>
 </body>
 </html>
