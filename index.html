@@ -833,6 +833,13 @@
 
 <!-- ─── LOGIC ─── -->
 <script>
+  // Generate a stable session ID for this browser session (memory continuity)
+  const sessionId = sessionStorage.getItem('gp73_session') || (() => {
+    const id = 'sess_' + Math.random().toString(36).slice(2, 11);
+    sessionStorage.setItem('gp73_session', id);
+    return id;
+  })();
+
   function fillAndAsk(question) {
     const input = document.getElementById('q');
     input.value = question;
@@ -857,7 +864,7 @@
      const res = await fetch('/api/ask', {
        method: 'POST',
        headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ question: q })
+       body: JSON.stringify({ question: q, sessionId: sessionId })
      });
 
      const data = await res.json();

@@ -671,7 +671,7 @@ function classifyTone(q) {
   return 'SEEKING';
 }
 
-async function safeGenerate(question, systemPrompt, teachingContext, posture) {
+async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null) {
 
   // Classify tone to drive HOW we respond -- not what content we use
   const toneClass = classifyTone(question);
@@ -712,9 +712,16 @@ GLOBAL RULES:
 - Do not use: "Here's the truth whether you like it or not", "You're looking at this from the wrong direction"
 - Sound like a real person teaching, not a scripted bot`;
 
-  const userPrompt = `Question: "${question}"
+  const conversationNote = conversationContext
+    ? `RECENT CONVERSATION (for continuity only -- do NOT let this override the current question):
+${conversationContext}
 
-Respond directly and naturally. Use the teaching context. Do not guess or generalize beyond what is provided.`;
+`
+    : '';
+
+  const userPrompt = `${conversationNote}Current question: "${question}"
+
+Respond directly and naturally. Use the teaching context. Do not guess or generalize beyond what is provided. If the current question follows from a prior turn, acknowledge that naturally but keep focus on what they're asking now.`;
 
   const messages = [
     { role: 'system', content: groundedSystem },
@@ -736,6 +743,37 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
 }
 
 // ============================================================
+// SHORT-TERM MEMORY
+// Stores last 2 turns per session to maintain conversational continuity.
+// Uses sessionId from request body (frontend must send it).
+// Falls back to a global slot if no sessionId provided.
+// Memory is in-process only -- resets on cold start. Intentional.
+// ============================================================
+const sessionMemory = new Map();
+
+function getMemory(sessionId) {
+  return sessionMemory.get(sessionId) || [];
+}
+
+function updateMemory(sessionId, question, answer) {
+  const history = getMemory(sessionId);
+  history.push({ question, answer });
+  if (history.length > 2) history.shift();
+  sessionMemory.set(sessionId, history);
+  if (sessionMemory.size > 500) {
+    const firstKey = sessionMemory.keys().next().value;
+    sessionMemory.delete(firstKey);
+  }
+}
+
+function buildConversationContext(history) {
+  if (!history.length) return null;
+  return history.map((turn, i) =>
+    `[Prior turn ${i + 1}]\nThey asked: ${turn.question}\nYou said: ${turn.answer.slice(0, 180)}`
+  ).join('\n\n');
+}
+
+// ============================================================
 // MAIN HANDLER
 // ============================================================
 export default async function handler(req, res) {
@@ -744,10 +782,14 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { question = '' } = req.body || {};
+    const { question = '', sessionId = 'default' } = req.body || {};
     if (!question.trim()) {
       return res.status(400).json({ error: 'Missing question' });
     }
+
+    // Load short-term memory for this session
+    const priorHistory = getMemory(sessionId);
+    const conversationContext = buildConversationContext(priorHistory);
 
     // STEP 1 — Check hard-coded voice responses first
     const hardCoded = checkHardCodedResponse(question);
@@ -783,8 +825,12 @@ export default async function handler(req, res) {
 
     // STEP 5 — Generate response grounded in teachings
     // teachingContext replaces generic VOICE_SYSTEM_PROMPT when available
+    // conversationContext adds last 1-2 turns for continuity -- does NOT override current question
     const systemPrompt = intent === 'general' ? GENERAL_PROMPT : VOICE_SYSTEM_PROMPT;
-    const answer = await safeGenerate(question, systemPrompt, teachingContext, posture);
+    const answer = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext);
+
+    // Save this turn to memory
+    updateMemory(sessionId, question, answer);
 
     console.log('[GP73 FINAL]', answer);
     return res.status(200).json({ source: 'gp73-brain', answer });
