@@ -34,7 +34,7 @@
     gap: 10px;
   }
 
-  .nav-brand img { height: 36px; }
+  .nav-brand img { height: 36px; filter: brightness(0) invert(1) sepia(1) saturate(3) hue-rotate(5deg); }
 
   .nav-brand-name {
     color: #FFD600;
@@ -612,21 +612,8 @@
 <!-- ─── NAV ─── -->
 <nav>
   <div class="nav-brand">
-    <!-- Bible icon -->
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Bible">
-      <rect x="3" y="2" width="14" height="18" rx="1.5" fill="#FFD600"/>
-      <rect x="5" y="4" width="10" height="1.5" rx="0.75" fill="#0a0a0a"/>
-      <rect x="5" y="7" width="10" height="1.5" rx="0.75" fill="#0a0a0a"/>
-      <rect x="5" y="10" width="6" height="1.5" rx="0.75" fill="#0a0a0a"/>
-      <rect x="10" y="9" width="1.5" height="4" rx="0.75" fill="#0a0a0a"/>
-      <rect x="17" y="4" width="4" height="16" rx="1" fill="#b8960a"/>
-    </svg>
-    <!-- GP pen icon -->
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="GP">
-      <path d="M17.5 2.5 L21.5 6.5 L8 20 L3 21 L4 16 Z" fill="#FFD600"/>
-      <path d="M15.5 4.5 L19.5 8.5" stroke="#b8960a" stroke-width="1.5"/>
-      <path d="M3 21 L4 16 L8 20 Z" fill="#b8960a"/>
-    </svg>
+    <img src="/bible.png" alt="Bible" />
+    <img src="/GPlogo.png" alt="GP" />
     <div class="nav-brand-name">GP73</div>
   </div>
   <div class="nav-links">
