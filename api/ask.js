@@ -498,7 +498,7 @@ function voiceCheck(text) {
 }
 
 // ============================================================
-// EMBEDDING + RAG
+// EMBEDDING + RAG via match_documents() RPC
 // ============================================================
 async function getEmbedding(question) {
   const r = await fetch('https://api.openai.com/v1/embeddings', {
@@ -513,13 +513,65 @@ async function getEmbedding(question) {
   return data.data?.[0]?.embedding;
 }
 
+// Query Supabase using match_documents() vector similarity RPC
+// Returns top 3-5 teaching matches with Title + Content
+async function queryTeachings(question) {
+  try {
+    const embedding = await getEmbedding(question);
+    if (!embedding) return null;
+
+    const rpcRes = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/rpc/match_documents`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: process.env.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ query_embedding: embedding, match_count: 5 }),
+      }
+    );
+
+    if (!rpcRes.ok) {
+      console.warn('[GP73 RAG] RPC error:', rpcRes.status);
+      return null;
+    }
+
+    const docs = await rpcRes.json();
+    if (!Array.isArray(docs) || !docs.length) return null;
+
+    // Filter by similarity threshold
+    const relevant = docs.filter(d => (d.similarity || 0) >= 0.35);
+    if (!relevant.length) return null;
+
+    console.log('[GP73 RAG] Matches:', relevant.map(d => ({
+      id: d.id,
+      title: d.title,
+      sim: d.similarity?.toFixed(3)
+    })));
+
+    // Build grounded context block from top 3-5 teachings
+    const context = relevant.slice(0, 4).map((d, i) => {
+      const text = (d.content || '').replace(/\u0000/g, '').trim();
+      return `[Teaching ${i + 1}: ${d.title || 'Untitled'}]\n${text.slice(0, 1200)}`;
+    }).join('\n\n---\n\n');
+
+    return context;
+
+  } catch (err) {
+    console.warn('[GP73 RAG] Query failed, falling through:', err.message);
+    return null;
+  }
+}
+
 function buildContext(docs = []) {
   if (!docs.length) return { context: '', hasRelevant: false };
   const relevant = docs.filter(d => (d.similarity || 0) >= 0.35);
   if (!relevant.length) return { context: '', hasRelevant: false };
-  const context = relevant.slice(0, 2).map((d, i) => {
+  const context = relevant.slice(0, 3).map((d, i) => {
     const raw = d.Content || d.Summary || '';
-    return `[Teaching ${i + 1}]\n${raw.slice(0, 800)}`;
+    return `[Teaching ${i + 1}: ${d.Title || ''}]\n${raw.slice(0, 1200)}`;
   }).join('\n\n---\n\n');
   return { context, hasRelevant: true };
 }
@@ -545,45 +597,52 @@ async function callGPT(messages) {
   return data.choices?.[0]?.message?.content || '';
 }
 
-async function safeGenerate(question, systemPrompt, ragInstruction, posture) {
-  // Get a fresh entry line from Chief's bank -- varies by posture
-  const entryLine = getEntryLine(posture, question);
+async function safeGenerate(question, systemPrompt, teachingContext, posture) {
+
+  // Build the grounded system prompt
+  // If we have real teaching content, anchor GPT to it exclusively
+  const groundedSystem = teachingContext
+    ? `You are answering using ONLY the teachings provided below.
+Do NOT generalize. Do NOT use generic Christian explanations.
+Speak in the tone and doctrinal clarity of these teachings.
+Match the directness, authority, and specificity of the source material.
+No em dashes. No filler phrases. No soft openers.
+If the context does not directly address the question, say so briefly and give the closest relevant truth from what is provided.
+Response length should match question complexity -- concise for simple questions, fuller for complex ones. Do not over-preach.
+
+CONTEXT:
+${teachingContext}`
+    : systemPrompt;
 
   const postureNote = posture === 'resistant'
-    ? 'This person is pushing back. Be direct and surgical. Attack the logic flaw first. Do not soften or defend.'
+    ? 'This person is resistant. Be direct. Expose the contradiction without softening.'
     : posture === 'emotional'
-    ? 'This person is hurting. One brief acknowledgment, then correct and give clear direction.'
-    : 'Correct the assumption and give clear direction.';
+    ? 'This person is struggling. Brief acknowledgment, then correct and give clear direction from the teachings.'
+    : 'Answer directly from the teaching context provided.';
 
-  const transformedQuestion = `The user is ${posture}. ${postureNote}
+  const userPrompt = `${postureNote}
 
-Start your response with this exact opening line, then continue from there:
-"${entryLine}"
+Question: "${question}"
 
-Do NOT use "Your thinking is flawed" as the opener -- that is reserved for other uses.
-Do NOT use the same opening phrase more than once.
-
-Their question: "${question}"
-
-Attack the core faulty assumption in the first sentence. Correct it. Explain the truth. Give instruction. Do not agree with a flawed premise. Do not explain before you correct.`;
+Answer strictly using the teaching context above. Do not guess. Do not generalize.`;
 
   const messages = [
-    { role: 'system', content: systemPrompt },
-    ...(ragInstruction ? [{ role: 'system', content: ragInstruction }] : []),
-    { role: 'user', content: transformedQuestion },
+    { role: 'system', content: groundedSystem },
+    { role: 'user', content: userPrompt },
   ];
 
-  // Retry once only if response opens with known weak phrases
+  // Retry once if voice check fails
   for (let i = 0; i < 2; i++) {
     const raw = await callGPT(messages);
     console.log('[GP73 RAW]', raw);
     const clean = voiceCheck(raw);
     if (clean) return clean;
-    console.log('[GP73] Hard fail, retrying once...');
+    console.log('[GP73] Voice check fail, retrying...');
   }
 
-  // If both attempts fail, return the entry line + a direct statement
-  return `${entryLine} Get in the Word and build from there.`;
+  // Fallback -- return raw on second fail rather than canned line
+  const raw = await callGPT(messages);
+  return raw.trim() || 'Check the Word on this one.';
 }
 
 // ============================================================
@@ -619,50 +678,23 @@ export default async function handler(req, res) {
     const posture = detectPosture(question);
     console.log('[GP73]', { intent, posture });
 
-    // STEP 4 — RAG retrieval
-    let context = '';
-    let hasRelevantContext = false;
+    // STEP 4 — Retrieve grounded teachings via match_documents() RPC
+    // Only runs on spiritual questions. Hard-coded answers already returned above.
+    let teachingContext = null;
 
     if (intent === 'spiritual') {
-      const embedding = await getEmbedding(question);
-      if (embedding) {
-        const supabaseRes = await fetch(
-          `${process.env.SUPABASE_URL}/rest/v1/documents?select=id,Title,Content,Summary,embedding&embedding=not.is.null&limit=50`,
-          {
-            headers: {
-              apikey: process.env.SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-            },
-          }
-        );
-        const docs = await supabaseRes.json();
-        if (Array.isArray(docs) && docs.length > 0) {
-          const scored = docs.filter(d => d.embedding).map(d => {
-            const emb = typeof d.embedding === 'string' ? JSON.parse(d.embedding) : d.embedding;
-            let dot = 0, normA = 0, normB = 0;
-            for (let i = 0; i < embedding.length; i++) {
-              dot += embedding[i] * emb[i];
-              normA += embedding[i] ** 2;
-              normB += emb[i] ** 2;
-            }
-            return { ...d, similarity: dot / (Math.sqrt(normA) * Math.sqrt(normB)) };
-          }).sort((a, b) => b.similarity - a.similarity).slice(0, 3);
-
-          console.log('[GP73 RAG]', scored.map(d => ({ title: d.Title, sim: d.similarity.toFixed(3) })));
-          const built = buildContext(scored);
-          context = built.context;
-          hasRelevantContext = built.hasRelevant;
-        }
+      teachingContext = await queryTeachings(question);
+      if (teachingContext) {
+        console.log('[GP73] Teaching context retrieved, grounding response');
+      } else {
+        console.log('[GP73] No teaching match -- voice-only fallback');
       }
     }
 
-    // STEP 5 — Select prompt and generate
+    // STEP 5 — Generate response grounded in teachings
+    // teachingContext replaces generic VOICE_SYSTEM_PROMPT when available
     const systemPrompt = intent === 'general' ? GENERAL_PROMPT : VOICE_SYSTEM_PROMPT;
-    const ragInstruction = hasRelevantContext
-      ? `Use the following stored teaching as your primary source. Draw from its language and perspective directly. Do not override it or generalize it.\n\n${context}`
-      : null;
-
-    const answer = await safeGenerate(question, systemPrompt, ragInstruction, posture);
+    const answer = await safeGenerate(question, systemPrompt, teachingContext, posture);
 
     console.log('[GP73 FINAL]', answer);
     return res.status(200).json({ source: 'gp73-brain', answer });
