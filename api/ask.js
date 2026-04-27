@@ -597,41 +597,87 @@ async function callGPT(messages) {
   return data.choices?.[0]?.message?.content || '';
 }
 
+// ============================================================
+// TONE CLASSIFIER
+// Detects whether the user is SEEKING, STRUGGLING, or CORRECTING
+// This drives HOW the response opens and flows -- not what it says
+// ============================================================
+function classifyTone(q) {
+  const lower = q.toLowerCase();
+
+  // STRUGGLING -- emotional, defeated, confused, personal pain
+  const strugglingSignals = [
+    'why is', 'why am i', 'why do i', 'why can\'t i', 'why don\'t i',
+    'i feel', 'i\'m struggling', 'i keep', 'i can\'t', 'i don\'t understand',
+    'help me', 'not working for me', 'lost', 'confused', 'broken',
+    'depressed', 'hopeless', 'alone', 'tired', 'hurt', 'scared'
+  ];
+
+  // CORRECTION -- confident but potentially wrong assumptions, resistance, challenges
+  const correctionSignals = [
+    'i think', 'i believe', 'i don\'t think', 'i don\'t believe',
+    'why would', 'why should', 'i don\'t need', 'that\'s not',
+    'you\'re wrong', 'that doesn\'t make sense', 'i disagree',
+    'hypocrites', 'just want money', 'too controlling', 'man-made',
+    'old testament', 'doesn\'t work', 'never works'
+  ];
+
+  if (strugglingSignals.some(s => lower.includes(s))) return 'STRUGGLING';
+  if (correctionSignals.some(s => lower.includes(s))) return 'CORRECTION';
+  return 'SEEKING';
+}
+
 async function safeGenerate(question, systemPrompt, teachingContext, posture) {
 
-  // Build the grounded system prompt
-  // If we have real teaching content, anchor GPT to it exclusively
+  // Classify tone to drive HOW we respond -- not what content we use
+  const toneClass = classifyTone(question);
+  console.log('[GP73 TONE]', toneClass);
+
+  // Build tone-specific instruction -- no hardcoded openers, no templates
+  const toneInstruction = toneClass === 'SEEKING'
+    ? `The person is genuinely curious. Open naturally -- no correction, no challenge. Draw them into the truth with clarity and confidence. Start with what the teaching says, not with what they got wrong. Vary how you begin each response.`
+    : toneClass === 'STRUGGLING'
+    ? `The person is hurting or confused. Do NOT open with correction or challenge. Begin with brief acknowledgment of where they are, then move them toward truth from the teachings. Be firm but not harsh. The tone is a steady hand, not a rebuke.`
+    : `The person has a wrong assumption or is resisting truth. Address it directly but do not start with a canned phrase like "Here's the truth" or "You're looking at this wrong." Expose the flaw naturally within the first sentence. Vary the opening -- no repeated patterns.`;
+
+  // Build grounded system prompt from teaching context when available
   const groundedSystem = teachingContext
-    ? `You are answering using ONLY the teachings provided below.
-Do NOT generalize. Do NOT use generic Christian explanations.
-Speak in the tone and doctrinal clarity of these teachings.
-Match the directness, authority, and specificity of the source material.
-No em dashes. No filler phrases. No soft openers.
-If the context does not directly address the question, say so briefly and give the closest relevant truth from what is provided.
-Response length should match question complexity -- concise for simple questions, fuller for complex ones. Do not over-preach.
+    ? `You are a biblical teacher responding from the teaching content provided below.
+You do NOT generate generic Christian answers.
+You speak from these specific teachings with their language, depth, and perspective.
+No em dashes. No filler phrases. No templated openers.
+Response length matches the question -- concise for simple questions, fuller for deep ones. Do not over-explain.
 
-CONTEXT:
+${toneInstruction}
+
+GLOBAL RULES:
+- Never start two responses the same way
+- Do not wrap openers in quotation marks
+- Do not use: "Here's the truth whether you like it or not", "You're looking at this from the wrong direction", "The issue isn't what you think it is"
+- Sound like a real person teaching, not a scripted bot
+
+TEACHING CONTEXT:
 ${teachingContext}`
-    : systemPrompt;
+    : `${systemPrompt}
 
-  const postureNote = posture === 'resistant'
-    ? 'This person is resistant. Be direct. Expose the contradiction without softening.'
-    : posture === 'emotional'
-    ? 'This person is struggling. Brief acknowledgment, then correct and give clear direction from the teachings.'
-    : 'Answer directly from the teaching context provided.';
+${toneInstruction}
 
-  const userPrompt = `${postureNote}
+GLOBAL RULES:
+- Never start two responses the same way
+- Do not wrap openers in quotation marks
+- Do not use: "Here's the truth whether you like it or not", "You're looking at this from the wrong direction"
+- Sound like a real person teaching, not a scripted bot`;
 
-Question: "${question}"
+  const userPrompt = `Question: "${question}"
 
-Answer strictly using the teaching context above. Do not guess. Do not generalize.`;
+Respond directly and naturally. Use the teaching context. Do not guess or generalize beyond what is provided.`;
 
   const messages = [
     { role: 'system', content: groundedSystem },
     { role: 'user', content: userPrompt },
   ];
 
-  // Retry once if voice check fails
+  // Retry once if voice check hard-fails
   for (let i = 0; i < 2; i++) {
     const raw = await callGPT(messages);
     console.log('[GP73 RAW]', raw);
@@ -640,7 +686,7 @@ Answer strictly using the teaching context above. Do not guess. Do not generaliz
     console.log('[GP73] Voice check fail, retrying...');
   }
 
-  // Fallback -- return raw on second fail rather than canned line
+  // Return raw on second fail -- better than a canned line
   const raw = await callGPT(messages);
   return raw.trim() || 'Check the Word on this one.';
 }
