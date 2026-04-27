@@ -1,41 +1,880 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GP73 Chat</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; background:#0b0b0b; color:#f4f4f4; }
-    textarea, button, a { font: inherit; }
-    textarea { width: 100%; min-height: 100px; margin: 12px 0; padding: 12px; border-radius: 10px; border:1px solid #333; background:#111; color:#fff; }
-    button, a.btn { display:inline-block; padding: 12px 16px; border-radius:10px; border:0; background:#d7b46a; color:#111; text-decoration:none; font-weight:700; }
-    pre { white-space: pre-wrap; background:#111; padding:16px; border-radius:10px; border:1px solid #333; }
-    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .muted { color:#aaa; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GP73 — Biblical Clarity by Apostle Sedrick Davis</title>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #080808;
+    color: #efefef;
+    min-height: 100vh;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid #1a1a1a;
+    position: sticky;
+    top: 0;
+    background: #080808;
+    z-index: 100;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-brand img { height: 36px; }
+
+  .nav-brand-name {
+    color: #FFD600;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .nav-links a {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: #FFD600; }
+
+  .nav-cta {
+    background: #FFD600;
+    color: #000 !important;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 4px;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 32px 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .hero-left { display: flex; flex-direction: column; gap: 20px; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #FFD600;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #FFD600;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #FFD600;
+  }
+
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.15;
+  }
+
+  .hero h1 span { color: #FFD600; }
+
+  .hero-sub {
+    font-size: 18px;
+    color: #aaa;
+    line-height: 1.6;
+  }
+
+  .hero-attribution {
+    font-size: 13px;
+    color: #555;
+    font-style: italic;
+  }
+
+  /* ─── PHOTO ─── */
+  .hero-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .apostle-photo-wrap {
+    position: relative;
+    width: 280px;
+    height: 280px;
+  }
+
+  .apostle-photo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,214,0,0.25) 0%, transparent 70%);
+    z-index: 0;
+  }
+
+  .apostle-photo-wrap::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,214,0,0.4);
+    z-index: 1;
+  }
+
+  .apostle-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;
+    position: relative;
+    z-index: 2;
+    filter: brightness(0.95) contrast(1.05);
+  }
+
+  .apostle-label {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 14px;
+    color: #FFD600;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .apostle-title {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ─── BOT SECTION ─── */
+  .bot-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 32px 60px;
+  }
+
+  .bot-section-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .bot-section-header h2 {
+    font-size: 32px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+
+  .bot-section-header h2 span { color: #FFD600; }
+
+  .bot-section-header p {
+    font-size: 16px;
+    color: #777;
+    line-height: 1.6;
+  }
+
+  /* ─── CHIPS ─── */
+  .chips-label {
+    font-size: 12px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .chip {
+    background: transparent;
+    border: 1px solid #FFD600;
+    color: #FFD600;
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+
+  .chip:hover {
+    background: #FFD600;
+    color: #000;
+  }
+
+  /* ─── INPUT ─── */
+  textarea {
+    width: 100%;
+    height: 110px;
+    background: #111;
+    border: 1px solid #222;
+    border-left: 3px solid #FFD600;
+    color: #fff;
+    padding: 16px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    resize: none;
+    border-radius: 0 4px 4px 0;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #FFD600;
+    border-left-width: 3px;
+  }
+
+  .ask-btn {
+    width: 100%;
+    padding: 16px;
+    background: #FFD600;
+    color: #000;
+    font-weight: 900;
+    font-size: 17px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .ask-btn:hover { background: #ffe033; }
+  .ask-btn:active { transform: scale(0.99); }
+
+  /* ─── OUTPUT ─── */
+  #out {
+    background: #111;
+    border-left: 3px solid #FFD600;
+    padding: 20px;
+    color: #ddd;
+    margin-top: 20px;
+    white-space: pre-wrap;
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 60px;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ─── POST-ANSWER CARDS (hidden by default) ─── */
+  #conversion-cards {
+    display: none;
+    margin-top: 32px;
+  }
+
+  #conversion-cards.visible { display: block; }
+
+  .conversion-label {
+    font-size: 12px;
+    color: #FFD600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .cta-card {
+    background: #111;
+    border-top: 3px solid #FFD600;
+    padding: 20px;
+    border-radius: 0 0 6px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.2s;
+  }
+
+  .cta-card:hover { transform: translateY(-3px); }
+
+  .cta-card-tag {
+    font-size: 11px;
+    color: #FFD600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+  }
+
+  .cta-card h3 {
+    font-size: 16px;
+    color: #fff;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .cta-card p {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .cta-card-btn {
+    display: block;
+    text-align: center;
+    background: #FFD600;
+    color: #000;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-top: 6px;
+    transition: background 0.2s;
+  }
+
+  .cta-card-btn:hover { background: #ffe033; }
+
+  .cta-card-btn.outline {
+    background: transparent;
+    border: 1px solid #FFD600;
+    color: #FFD600;
+  }
+
+  .cta-card-btn.outline:hover {
+    background: #FFD600;
+    color: #000;
+  }
+
+  /* ─── SECTION DIVIDER ─── */
+  .section-divider {
+    border: none;
+    border-top: 1px solid #1a1a1a;
+    margin: 60px 0;
+  }
+
+  /* ─── PRODUCT GRID ─── */
+  .product-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+  }
+
+  .section-tag {
+    font-size: 12px;
+    color: #FFD600;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .section-sub {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 40px;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .product-card {
+    background: #111;
+    border-radius: 8px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border: 1px solid #1a1a1a;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .product-card:hover {
+    border-color: #FFD600;
+    transform: translateY(-4px);
+  }
+
+  .product-card.featured {
+    border-color: #FFD600;
+    background: #0f0f00;
+  }
+
+  .product-price {
+    font-size: 24px;
+    font-weight: 900;
+    color: #FFD600;
+  }
+
+  .product-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+  }
+
+  .product-hook {
+    font-size: 14px;
+    color: #888;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .product-btn {
+    display: block;
+    text-align: center;
+    background: #FFD600;
+    color: #000;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .product-btn:hover { background: #ffe033; }
+
+  .product-btn.ghost {
+    background: transparent;
+    border: 1px solid #333;
+    color: #666;
+    cursor: default;
+  }
+
+  .product-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: #FFD600;
+    color: #000;
+    width: fit-content;
+  }
+
+  .product-badge.coming {
+    background: #222;
+    color: #666;
+  }
+
+  /* ─── LADDER SECTION ─── */
+  .ladder-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px 80px;
+  }
+
+  .ladder-row {
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 24px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .ladder-price {
+    font-size: 28px;
+    font-weight: 900;
+    color: #FFD600;
+  }
+
+  .ladder-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .ladder-desc {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .ladder-btn {
+    display: inline-block;
+    background: #FFD600;
+    color: #000;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 10px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  .ladder-btn:hover { background: #ffe033; }
+
+  .ladder-btn.ghost {
+    background: transparent;
+    border: 1px solid #333;
+    color: #555;
+    cursor: default;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid #1a1a1a;
+    padding: 32px;
+    text-align: center;
+    color: #333;
+    font-size: 13px;
+  }
+
+  footer a { color: #555; text-decoration: none; }
+  footer a:hover { color: #FFD600; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 768px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 40px 20px 20px;
+      gap: 30px;
+    }
+
+    .hero-right { order: -1; }
+
+    .apostle-photo-wrap {
+      width: 180px;
+      height: 180px;
+    }
+
+    .hero h1 { font-size: 30px; }
+
+    .bot-section { padding: 20px 20px 40px; }
+
+    .cards-grid { grid-template-columns: 1fr; }
+    .product-grid { grid-template-columns: 1fr; }
+
+    .ladder-row {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+
+    .product-section, .ladder-section { padding: 0 20px 60px; }
+  }
+</style>
 </head>
+
 <body>
-  <h1>GP73</h1>
-  <p class="muted">Ask a question. Answers come from Supabase first, then bible-api.com fallback.</p>
-  <textarea id="q" placeholder="Ask GP73..."></textarea>
-  <div class="row">
-    <button id="ask">Ask</button>
-    <a class="btn" href="https://stan.store/iamgodsprisoner" target="_blank" rel="noreferrer">Go deeper →</a>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-brand">
+    <img src="/bible.png" alt="Bible" />
+    <img src="/GPlogo.png" alt="GP" />
+    <div class="nav-brand-name">GP73</div>
   </div>
-  <h3>Response</h3>
-  <pre id="out">Ready.</pre>
-  <script>
-    const q = document.getElementById('q');
-    const out = document.getElementById('out');
-    document.getElementById('ask').onclick = async () => {
-      out.textContent = 'Thinking...';
-      const r = await fetch('/api/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q.value })
-      });
-      out.textContent = JSON.stringify(await r.json(), null, 2);
-    };
-  </script>
+  <div class="nav-links">
+    <a href="https://stan.store/iamgodsprisoner" target="_blank">Resources</a>
+    <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Discipleship</a>
+    <a href="https://stan.store/iamgodsprisoner" target="_blank" class="nav-cta">Get Access →</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<div class="hero">
+
+  <div class="hero-left">
+    <div class="hero-badge">Live & Active</div>
+
+    <h1>Stop guessing what the<br><span>Bible means.</span><br>Get clarity.</h1>
+
+    <p class="hero-sub">Real scripture-based answers. No opinions. No confusion. No guesswork. Ask anything and get the kind of clarity most churches never give you.</p>
+
+    <p class="hero-attribution">— Apostle Sedrick Davis, Godsprisoner</p>
+  </div>
+
+  <div class="hero-right">
+    <div>
+      <div class="apostle-photo-wrap">
+        <img
+          class="apostle-photo"
+          src="https://raw.githubusercontent.com/gp73ai/gp73-bible-bot/main/apostle.jpg"
+          onerror="this.style.display='none'; this.parentElement.style.background='#1a1a1a';"
+          alt="Apostle Sedrick Davis"
+        />
+      </div>
+      <div class="apostle-label">Apostle Sedrick Davis</div>
+      <div class="apostle-title">Godsprisoner · Bible Intelligence</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── BOT SECTION ─── -->
+<div class="bot-section">
+
+  <div class="bot-section-header">
+    <h2>Ask Anything. Get <span>Biblical Clarity</span> Instantly.</h2>
+    <p>Type a real question. Get a real, scripture-based answer — no confusion, no opinions.</p>
+  </div>
+
+  <div class="chips-label">Try asking →</div>
+  <div class="chips">
+    <button class="chip" onclick="fillAndAsk('Who is Jesus, really?')">Who is Jesus, really?</button>
+    <button class="chip" onclick="fillAndAsk('Why is my faith not working?')">Why is my faith not working?</button>
+    <button class="chip" onclick="fillAndAsk('Can I live how I want and follow God?')">Can I live how I want and follow God?</button>
+    <button class="chip" onclick="fillAndAsk('What does it mean to be saved?')">What does it mean to be saved?</button>
+    <button class="chip" onclick="fillAndAsk('How do I actually hear from God?')">How do I hear from God?</button>
+  </div>
+
+  <textarea id="q" placeholder="Ask something real… (ex: Why does God allow suffering?)"></textarea>
+  <button class="ask-btn" onclick="ask()">Get Clarity →</button>
+
+  <div id="out">Ask something real.</div>
+
+  <!-- POST-ANSWER CONVERSION CARDS (injected after response) -->
+  <div id="conversion-cards">
+    <div class="conversion-label">Go deeper with this topic</div>
+    <div class="cards-grid">
+
+      <div class="cta-card">
+        <div class="cta-card-tag">Quick Study</div>
+        <h3>Get the full teaching PDF</h3>
+        <p>Specific, structured breakdown of this topic from Apostle Davis' teachings. $2–$9.</p>
+        <a class="cta-card-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Browse PDFs →</a>
+      </div>
+
+      <div class="cta-card">
+        <div class="cta-card-tag">Recurring Value</div>
+        <h3>Join The Discipleship Circle</h3>
+        <p>Monthly access to teachings, study material, and biblical clarity delivered consistently.</p>
+        <a class="cta-card-btn outline" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Join — $7/month</a>
+      </div>
+
+      <div class="cta-card">
+        <div class="cta-card-tag">Full System</div>
+        <h3>Get Your Personal AI Discipleship Assistant</h3>
+        <p>GP73 trained on 20+ years of teachings. Ask anything, anytime. Guided growth, not just answers.</p>
+        <a class="cta-card-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get Access — $99</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<hr class="section-divider" />
+
+<!-- ─── PRODUCT GRID ─── -->
+<div class="product-section">
+
+  <div class="section-tag">Start Here</div>
+  <div class="section-title">Start with a specific issue</div>
+  <div class="section-sub">Each PDF is focused, direct, and built from real teachings — not generic devotionals.</div>
+
+  <div class="product-grid">
+
+    <div class="product-card">
+      <div class="product-badge">PDF</div>
+      <div class="product-price">$2.99</div>
+      <div class="product-name">Stop Calling It a Season</div>
+      <div class="product-hook">The truth about what you're really going through and what God actually requires from you in it.</div>
+      <a class="product-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get It Now</a>
+    </div>
+
+    <div class="product-card">
+      <div class="product-badge">PDF</div>
+      <div class="product-price">$2.99</div>
+      <div class="product-name">Fake Christian Checklist</div>
+      <div class="product-hook">A direct, scripture-based audit of what real discipleship looks like — versus what most people settle for.</div>
+      <a class="product-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get It Now</a>
+    </div>
+
+    <div class="product-card">
+      <div class="product-badge">PDF</div>
+      <div class="product-price">$3.99</div>
+      <div class="product-name">Why Your Faith Isn't Working</div>
+      <div class="product-hook">Real answers on why belief without understanding produces no results — and what to do about it.</div>
+      <a class="product-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get It Now</a>
+    </div>
+
+    <div class="product-card">
+      <div class="product-badge">PDF</div>
+      <div class="product-price">$3.99</div>
+      <div class="product-name">How to Actually Hear from God</div>
+      <div class="product-hook">Cut through confusion about divine communication. Learn the framework Apostle Davis has taught for over 20 years.</div>
+      <a class="product-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get It Now</a>
+    </div>
+
+    <div class="product-card featured">
+      <div class="product-badge">Monthly</div>
+      <div class="product-price">$7/mo</div>
+      <div class="product-name">The Discipleship Circle</div>
+      <div class="product-hook">Ongoing access to teachings, study sessions, and biblical clarity. Cancel anytime.</div>
+      <a class="product-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Join Now</a>
+    </div>
+
+    <div class="product-card">
+      <div class="product-badge coming">Coming Soon</div>
+      <div class="product-price">$29</div>
+      <div class="product-name">Learn the System</div>
+      <div class="product-hook">The framework behind GP73. How Apostle Davis interprets scripture, structures understanding, and removes confusion. PDF playbook — video coming.</div>
+      <a class="product-btn ghost" href="#">Notify Me</a>
+    </div>
+
+  </div>
+
+</div>
+
+<hr class="section-divider" />
+
+<!-- ─── PRODUCT LADDER ─── -->
+<div class="ladder-section">
+
+  <div class="section-tag">The Full Path</div>
+  <div class="section-title">Choose your level</div>
+  <div class="section-sub">From a single answer to a complete biblical intelligence system working for you 24/7.</div>
+
+  <div class="ladder-row">
+    <div class="ladder-price">Free</div>
+    <div>
+      <div class="ladder-name">Ask GP73</div>
+      <div class="ladder-desc">Ask any biblical question. Get a clear, scripture-based answer. No sign-up required.</div>
+    </div>
+    <a class="ladder-btn" href="#q" onclick="document.getElementById('q').focus()">Ask Now</a>
+  </div>
+
+  <div class="ladder-row">
+    <div class="ladder-price">$2–$9</div>
+    <div>
+      <div class="ladder-name">Teaching PDFs</div>
+      <div class="ladder-desc">Focused breakdowns on specific topics. Quick, direct, and built from 20+ years of teaching.</div>
+    </div>
+    <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Browse Store</a>
+  </div>
+
+  <div class="ladder-row">
+    <div class="ladder-price">$7/mo</div>
+    <div>
+      <div class="ladder-name">Discipleship Circle</div>
+      <div class="ladder-desc">Monthly teachings, study materials, and biblical clarity. Stay sharp. Stay growing.</div>
+    </div>
+    <a class="ladder-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Join Now</a>
+  </div>
+
+  <div class="ladder-row">
+ <div class="ladder-price">$29</div>
+ <div>
+ <div class="ladder-name">Clarity Bundle</div>
+ <div class="ladder-desc">7 focused teachings designed to reset how you think, interpret scripture, and apply truth in real life.</div>
+ </div>
+ <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get the Bundle</a>
+ </div>
+
+  <div class="ladder-row">
+ <div class="ladder-price">$99</div>
+ <div>
+ <div class="ladder-name">GP73 Discipleship AI</div>
+ <div class="ladder-desc">Walk through scripture step-by-step. Get real interpretation, guidance, and biblical clarity. Ask questions, study the Bible, and even interpret dreams through a biblical lens. Built from Apostle Davis' teachings. Not a chatbot — a guide that helps you grow.</div>
+ </div>
+ <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get Access</a>
+ </div>
+
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <p>GP73 Bible Intelligence · <a href="https://stan.store/iamgodsprisoner" target="_blank">Stan Store</a> · Built by Apostle Sedrick Davis · Godsprisoner</p>
+  <p style="margin-top:8px;">© 2026 All rights reserved.</p>
+</footer>
+
+<!-- ─── LOGIC ─── -->
+<script>
+  function fillAndAsk(question) {
+    const input = document.getElementById('q');
+    input.value = question;
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+ let isLoading = false;
+
+ async function ask() {
+   if (isLoading) return;
+   const q = document.getElementById('q').value.trim();
+   if (!q) return;
+
+   isLoading = true;
+   const out = document.getElementById('out');
+   const cards = document.getElementById('conversion-cards');
+
+   out.textContent = 'Thinking...';
+   cards.classList.remove('visible');
+
+   try {
+     const res = await fetch('/api/ask', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ question: q })
+     });
+
+     const data = await res.json();
+     out.textContent = data.answer || data.response || JSON.stringify(data, null, 2);
+
+     setTimeout(() => {
+       cards.classList.add('visible');
+       cards.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+     }, 600);
+
+   } catch (err) {
+     out.textContent = 'Something went wrong. Try again.';
+   } finally {
+     isLoading = false;
+   }
+ }
+</script>
+
 </body>
 </html>
