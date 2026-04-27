@@ -514,12 +514,13 @@ async function getEmbedding(question) {
 }
 
 // Query Supabase using match_documents() vector similarity RPC
-// Returns top 3-5 teaching matches with Title + Content
+// Returns top 3 tightest matches with keyword alignment check
 async function queryTeachings(question) {
   try {
     const embedding = await getEmbedding(question);
     if (!embedding) return null;
 
+    // Pull top 8 candidates — we'll filter down to top 3
     const rpcRes = await fetch(
       `${process.env.SUPABASE_URL}/rest/v1/rpc/match_documents`,
       {
@@ -529,7 +530,7 @@ async function queryTeachings(question) {
           apikey: process.env.SUPABASE_ANON_KEY,
           Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ query_embedding: embedding, match_count: 5 }),
+        body: JSON.stringify({ query_embedding: embedding, match_count: 8 }),
       }
     );
 
@@ -541,20 +542,63 @@ async function queryTeachings(question) {
     const docs = await rpcRes.json();
     if (!Array.isArray(docs) || !docs.length) return null;
 
-    // Filter by similarity threshold
-    const relevant = docs.filter(d => (d.similarity || 0) >= 0.35);
-    if (!relevant.length) return null;
+    // STEP 1 — Similarity threshold filter
+    const aboveThreshold = docs.filter(d => (d.similarity || 0) >= 0.35);
+    if (!aboveThreshold.length) return null;
 
-    console.log('[GP73 RAG] Matches:', relevant.map(d => ({
+    // STEP 2 — Keyword alignment check
+    // Extract meaningful terms from the question (skip stop words)
+    const stopWords = new Set(['what','is','the','a','an','of','to','in','and','or','for','do','does','how','why','when','who','are','was','were','be','been','i','my','me','you','your','we','they','it','this','that','can','will','have','has','had','not','no','but']);
+    const queryTerms = question.toLowerCase()
+      .replace(/[^a-z\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !stopWords.has(w));
+
+    // Score each doc by keyword hits in its content
+    const scored = aboveThreshold.map(d => {
+      const text = (d.content || d.title || '').toLowerCase();
+      const keywordHits = queryTerms.filter(term => text.includes(term)).length;
+      return { ...d, keywordHits };
+    });
+
+    // STEP 3 — Discard chunks with zero keyword alignment if we have better options
+    const aligned = scored.filter(d => d.keywordHits > 0);
+    const pool = aligned.length >= 1 ? aligned : scored; // fallback if no keyword match
+
+    // STEP 4 — Prefer chunks from the same teaching (highest similarity title)
+    // Group by title, pick best per title, then sort by similarity
+    const byTitle = {};
+    for (const d of pool) {
+      const key = (d.title || 'untitled').toLowerCase();
+      if (!byTitle[key] || d.similarity > byTitle[key].similarity) {
+        byTitle[key] = d;
+      }
+    }
+    const deduplicated = Object.values(byTitle)
+      .sort((a, b) => b.similarity - a.similarity);
+
+    // STEP 5 — Take top 3 only
+    const top3 = deduplicated.slice(0, 3);
+
+    console.log('[GP73 RAG] Selected:', top3.map(d => ({
       id: d.id,
       title: d.title,
-      sim: d.similarity?.toFixed(3)
+      sim: d.similarity?.toFixed(3),
+      keywordHits: d.keywordHits
     })));
 
-    // Build grounded context block from top 3-5 teachings
-    const context = relevant.slice(0, 4).map((d, i) => {
+    // STEP 6 — Build context block
+    // If top result is significantly better, use only that teaching
+    const topSim = top3[0]?.similarity || 0;
+    const secondSim = top3[1]?.similarity || 0;
+    const useOnlyTop = (topSim - secondSim) > 0.12; // clear winner — don't mix teachings
+
+    const selected = useOnlyTop ? top3.slice(0, 1) : top3;
+    console.log('[GP73 RAG]', useOnlyTop ? 'Single teaching mode' : `Multi-teaching mode (${selected.length})`);
+
+    const context = selected.map((d, i) => {
       const text = (d.content || '').replace(/\u0000/g, '').trim();
-      return `[Teaching ${i + 1}: ${d.title || 'Untitled'}]\n${text.slice(0, 1200)}`;
+      return `[Teaching ${i + 1}: ${d.title || 'Untitled'}]\n${text.slice(0, 1400)}`;
     }).join('\n\n---\n\n');
 
     return context;
