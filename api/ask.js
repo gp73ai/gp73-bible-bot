@@ -685,14 +685,23 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
     : `The person has a wrong assumption or is resisting truth. Address it directly but do not start with a canned phrase like "Here's the truth" or "You're looking at this wrong." Expose the flaw naturally within the first sentence. Vary the opening -- no repeated patterns.`;
 
   // Build grounded system prompt from teaching context when available
+  const structureRule = `
+RESPONSE STRUCTURE (follow this order, do NOT label sections, make it flow naturally):
+1. DIRECT ANSWER -- answer the question in 1-2 sentences. Get to the point immediately.
+2. TEACHING -- expand from the retrieved content. Explain the why and the how. Ground it in doctrine.
+3. APPLICATION -- close with what the person should do or understand next. Make it practical and personal.
+
+Total response: 4-7 sentences. Not a list. Not headers. Flowing prose that transforms, not just informs.`;
+
   const groundedSystem = teachingContext
     ? `You are a biblical teacher responding from the teaching content provided below.
 You do NOT generate generic Christian answers.
 You speak from these specific teachings with their language, depth, and perspective.
 No em dashes. No filler phrases. No templated openers.
-Response length matches the question -- concise for simple questions, fuller for deep ones. Do not over-explain.
 
 ${toneInstruction}
+
+${structureRule}
 
 GLOBAL RULES:
 - Never start two responses the same way
@@ -705,6 +714,8 @@ ${teachingContext}`
     : `${systemPrompt}
 
 ${toneInstruction}
+
+${structureRule}
 
 GLOBAL RULES:
 - Never start two responses the same way
