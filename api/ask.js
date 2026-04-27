@@ -944,25 +944,64 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
 const sessionMemory = new Map();
 
 function getMemory(sessionId) {
-  return sessionMemory.get(sessionId) || [];
+  return sessionMemory.get(sessionId) || { history: [], lastTopic: null, lastUserState: null, lastIssueSummary: null };
 }
 
-function updateMemory(sessionId, question, answer) {
-  const history = getMemory(sessionId);
-  history.push({ question, answer });
-  if (history.length > 2) history.shift();
-  sessionMemory.set(sessionId, history);
+// Extract a short topic label from the question
+function extractTopic(question) {
+  const lower = question.toLowerCase();
+  const topics = [
+    ['faith', ['faith', 'believe', 'belief', 'trust god']],
+    ['sin', ['sin', 'sinning', 'temptation', 'flesh', 'struggle with sin']],
+    ['salvation', ['saved', 'salvation', 'born again', 'repent', 'accept jesus']],
+    ['prayer', ['pray', 'prayer', 'talking to god', 'hearing god']],
+    ['identity', ['who am i', 'identity', 'purpose', 'calling', 'who god made']],
+    ['soul', ['soul', 'mind', 'renew', 'heart', 'inner man']],
+    ['holy spirit', ['holy spirit', 'spirit of god', 'gifts', 'walk in the spirit']],
+    ['kingdom', ['kingdom', 'kingdom of god', 'dominion', 'reign']],
+    ['relationships', ['marriage', 'family', 'relationships', 'forgive', 'offense']],
+    ['suffering', ['suffering', 'pain', 'trials', 'why does god allow', 'hard times']],
+    ['church', ['church', 'body of christ', 'pastors', 'ministry', 'hypocrites']],
+    ['obedience', ['obey', 'obedience', 'commands', 'follow god', 'discipleship']],
+  ];
+  for (const [label, keywords] of topics) {
+    if (keywords.some(k => lower.includes(k))) return label;
+  }
+  return 'general';
+}
+
+function updateMemory(sessionId, question, answer, userState, issueSummary) {
+  const mem = getMemory(sessionId);
+  const topic = extractTopic(question);
+
+  mem.history.push({ question, answer });
+  if (mem.history.length > 2) mem.history.shift();
+
+  mem.lastTopic = topic;
+  mem.lastUserState = userState;
+  mem.lastIssueSummary = issueSummary;
+
+  sessionMemory.set(sessionId, mem);
   if (sessionMemory.size > 500) {
     const firstKey = sessionMemory.keys().next().value;
     sessionMemory.delete(firstKey);
   }
 }
 
-function buildConversationContext(history) {
+function buildConversationContext(mem, currentQuestion) {
+  const { history, lastTopic, lastUserState, lastIssueSummary } = mem;
   if (!history.length) return null;
-  return history.map((turn, i) =>
-    `[Prior turn ${i + 1}]\nThey asked: ${turn.question}\nYou said: ${turn.answer.slice(0, 180)}`
+
+  const currentTopic = extractTopic(currentQuestion);
+  const sameTopicContinuity = lastTopic && currentTopic === lastTopic && lastIssueSummary
+    ? `[TOPIC CONTINUITY: The user was previously dealing with "${lastIssueSummary}" under the topic of ${lastTopic}. If this question connects to that, add a brief, natural bridge -- one short phrase only, not a full reference.  If it does NOT connect, ignore this.`
+    : null;
+
+  const historyNote = history.map((turn, i) =>
+    `[Prior turn ${i + 1}]\nThey asked: ${turn.question}\nYou said: ${turn.answer.slice(0, 150)}`
   ).join('\n\n');
+
+  return [historyNote, sameTopicContinuity].filter(Boolean).join('\n\n');
 }
 
 // ============================================================
@@ -980,8 +1019,8 @@ export default async function handler(req, res) {
     }
 
     // Load short-term memory for this session
-    const priorHistory = getMemory(sessionId);
-    const conversationContext = buildConversationContext(priorHistory);
+    const sessionMem = getMemory(sessionId);
+    const conversationContext = buildConversationContext(sessionMem, question);
 
     // STEP 1 — Check hard-coded voice responses first
     const hardCoded = checkHardCodedResponse(question);
@@ -1035,8 +1074,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Save this turn to memory
-    updateMemory(sessionId, question, finalAnswer);
+    // Save this turn to memory with enriched context
+    updateMemory(sessionId, question, finalAnswer, toneClass, userSignal);
 
     console.log('[GP73 FINAL]', finalAnswer);
     return res.status(200).json({ source: 'gp73-brain', answer: finalAnswer });
