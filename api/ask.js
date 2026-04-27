@@ -659,6 +659,71 @@ async function callGPT(messages) {
 }
 
 // ============================================================
+// FOLLOW-UP DECISION ENGINE
+// Decides IF a follow-up question is needed and generates ONE if so.
+// Conditions to ask: confusion, desire to grow, stuck, needs clarification.
+// Conditions to stay silent: complete answer, factual question, clarity would be diluted.
+// ============================================================
+function shouldAskFollowUp(userSignal, toneClass, question) {
+  const lower = question.toLowerCase();
+
+  // Never follow up on direct factual questions
+  if (/^what is|^who is|^when did|^where is|^how many|^define/.test(lower)) return false;
+
+  // Never follow up when user is correcting -- they need a clear answer, not more questions
+  if (toneClass === 'CORRECTION') return false;
+
+  // Ask when user is confused, stuck, or showing desire to grow
+  if (userSignal.includes('confused') || userSignal.includes('clarity')) return true;
+  if (userSignal.includes('failure') || userSignal.includes('giving up')) return true;
+  if (userSignal.includes('practical instruction') || userSignal.includes('wants')) return true;
+  if (userSignal.includes('guilt') || userSignal.includes('shame')) return true;
+  if (userSignal.includes('doubt')) return true;
+
+  // Ask on open-ended seeking questions
+  if (toneClass === 'SEEKING' && /how do|what does|why does|what should|what does it mean/.test(lower)) return true;
+
+  return false;
+}
+
+async function generateFollowUp(question, answer, teachingContext) {
+  const prompt = `A person asked: "${question}"
+
+You gave this answer:
+"${answer}"
+
+Generate ONE follow-up question that:
+- Connects directly to what was just said
+- Moves them deeper into the SAME topic -- not sideways
+- Exposes what they actually believe, not just what they know
+- Feels natural at the end of the response, not scripted
+- Is specific, not generic
+- Is a single sentence
+- Does NOT start with "Have you ever", "Do you think", or "What do you believe" unless nothing else fits
+
+Return ONLY the question. No intro. No label. No extra text.`;
+
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      temperature: 0.5,
+      max_tokens: 60,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  const data = await r.json();
+  const followUp = (data.choices?.[0]?.message?.content || '').trim();
+  // Sanity check -- must end with ? and be a single sentence
+  if (!followUp.endsWith('?') || followUp.split('?').length > 2) return null;
+  return followUp;
+}
+
+// ============================================================
 // USER SIGNAL EXTRACTOR
 // Reads what the user is actually dealing with beneath the question
 // Returns a plain-language situation description for prompt injection
@@ -851,7 +916,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const firstClean = voiceCheck(firstRaw);
 
   if (firstClean && isGrounded(firstClean, teachingContext)) {
-    return firstClean;
+    return { answer: firstClean, toneClass, userSignal };
   }
 
   // If not grounded or failed voice check -- regenerate with stricter anchor
@@ -866,7 +931,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const secondRaw = await callGPT(anchoredMessages);
   console.log('[GP73 RAW 2]', secondRaw);
   const secondClean = voiceCheck(secondRaw);
-  return secondClean || secondRaw.trim() || 'Check the Word on this one.';
+  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal };
 }
 
 // ============================================================
@@ -954,13 +1019,27 @@ export default async function handler(req, res) {
     // teachingContext replaces generic VOICE_SYSTEM_PROMPT when available
     // conversationContext adds last 1-2 turns for continuity -- does NOT override current question
     const systemPrompt = intent === 'general' ? GENERAL_PROMPT : VOICE_SYSTEM_PROMPT;
-    const answer = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext);
+    const { answer, toneClass, userSignal } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext);
+
+    // STEP 6 — Conversation control: decide if a follow-up question is needed
+    let finalAnswer = answer;
+    if (shouldAskFollowUp(userSignal, toneClass, question)) {
+      try {
+        const followUp = await generateFollowUp(question, answer, teachingContext);
+        if (followUp) {
+          finalAnswer = `${answer} ${followUp}`;
+          console.log('[GP73 FOLLOW-UP]', followUp);
+        }
+      } catch (e) {
+        console.warn('[GP73 FOLLOW-UP] Generation failed, skipping:', e.message);
+      }
+    }
 
     // Save this turn to memory
-    updateMemory(sessionId, question, answer);
+    updateMemory(sessionId, question, finalAnswer);
 
-    console.log('[GP73 FINAL]', answer);
-    return res.status(200).json({ source: 'gp73-brain', answer });
+    console.log('[GP73 FINAL]', finalAnswer);
+    return res.status(200).json({ source: 'gp73-brain', answer: finalAnswer });
 
   } catch (error) {
     console.error('[GP73 ERROR]', error.message);
