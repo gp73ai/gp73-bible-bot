@@ -688,10 +688,11 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
   const structureRule = `
 RESPONSE STRUCTURE (follow this order, do NOT label sections, make it flow naturally):
 1. DIRECT ANSWER -- answer the question in 1-2 sentences. Get to the point immediately.
-2. TEACHING -- expand from the retrieved content. Explain the why and the how. Ground it in doctrine.
+2. TEACHING -- expand from the retrieved content. Use the exact language and framing from the teaching. Quote or closely paraphrase it. Do not summarize from memory -- pull directly from what is provided.
 3. APPLICATION -- close with what the person should do or understand next. Make it practical and personal.
 
-Total response: 4-7 sentences. Not a list. Not headers. Flowing prose that transforms, not just informs.`;
+Total response: 4-7 sentences. Not a list. Not headers. Flowing prose that transforms, not just informs.
+The response must sound like it came FROM the teaching, not ABOUT it.`;
 
   const groundedSystem = teachingContext
     ? `You are a biblical teacher responding from the teaching content provided below.
@@ -739,18 +740,55 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
     { role: 'user', content: userPrompt },
   ];
 
-  // Retry once if voice check hard-fails
-  for (let i = 0; i < 2; i++) {
-    const raw = await callGPT(messages);
-    console.log('[GP73 RAW]', raw);
-    const clean = voiceCheck(raw);
-    if (clean) return clean;
-    console.log('[GP73] Voice check fail, retrying...');
+  // GROUNDING CHECK
+  // Extracts key content terms from teaching context
+  // Verifies response contains at least some of them
+  // If not grounded, regenerates once with explicit anchoring instruction
+  function isGrounded(response, context) {
+    if (!context) return true; // no context = voice-only, skip check
+    const stopWords = new Set(['the','a','an','of','to','in','and','or','for','is','are','was','were','be','it','this','that','you','your','we','they','them','with','from','by','at','on','as','not','but','so','if','do','does']);
+    const contextTerms = context.toLowerCase()
+      .replace(/[^a-z\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 4 && !stopWords.has(w));
+    // Get unique high-value terms
+    const termFreq = {};
+    for (const t of contextTerms) termFreq[t] = (termFreq[t] || 0) + 1;
+    const keyTerms = Object.entries(termFreq)
+      .filter(([,count]) => count >= 2)
+      .sort((a,b) => b[1]-a[1])
+      .slice(0, 10)
+      .map(([term]) => term);
+    if (!keyTerms.length) return true;
+    const responseLower = response.toLowerCase();
+    const hits = keyTerms.filter(t => responseLower.includes(t)).length;
+    const groundingScore = hits / keyTerms.length;
+    console.log(`[GP73 GROUNDING] ${hits}/${keyTerms.length} key terms matched (${(groundingScore*100).toFixed(0)}%)`);
+    return groundingScore >= 0.25; // at least 25% of key terms must appear
   }
 
-  // Return raw on second fail -- better than a canned line
-  const raw = await callGPT(messages);
-  return raw.trim() || 'Check the Word on this one.';
+  // First attempt
+  const firstRaw = await callGPT(messages);
+  console.log('[GP73 RAW]', firstRaw);
+  const firstClean = voiceCheck(firstRaw);
+
+  if (firstClean && isGrounded(firstClean, teachingContext)) {
+    return firstClean;
+  }
+
+  // If not grounded or failed voice check -- regenerate with stricter anchor
+  console.log('[GP73] Regenerating with stronger grounding instruction...');
+  const anchoredMessages = [
+    {
+      role: 'system',
+      content: messages[0].content + '\n\nCRITICAL: Your previous response was too generic. You MUST use specific words, phrases, and concepts directly from the TEACHING CONTEXT provided. Quote or closely paraphrase the actual teaching language. Do not summarize from general knowledge.'
+    },
+    messages[1]
+  ];
+  const secondRaw = await callGPT(anchoredMessages);
+  console.log('[GP73 RAW 2]', secondRaw);
+  const secondClean = voiceCheck(secondRaw);
+  return secondClean || secondRaw.trim() || 'Check the Word on this one.';
 }
 
 // ============================================================
