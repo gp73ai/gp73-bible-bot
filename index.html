@@ -742,17 +742,38 @@
     <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Identity</button>
     <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Prayer</button>
   </div>
+  <!-- UNLOCK SIGNAL above locked topics -->
+  <div style="font-size:12px;color:#555;margin-bottom:6px">&#128274; <span style="color:#aaa">3 more topics available with membership &mdash;</span> <span style="color:#FFD600;text-decoration:underline;cursor:pointer" onclick="showPaywall('test')">unlock them &rarr;</span></div>
+
   <div id="topicLockNudge" style="display:none;background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#aaa;margin-bottom:8px;display:none;align-items:center;justify-content:space-between;gap:10px">
     <span>This topic unlocks with Core access.</span>
-    <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" style="background:#FFD600;color:#000;font-weight:700;font-size:12px;padding:5px 12px;border-radius:6px;text-decoration:none;white-space:nowrap">Unlock &rarr;</a>
+    <a href="#" onclick="showPaywall('test');return false" style="background:#FFD600;color:#000;font-weight:700;font-size:12px;padding:5px 12px;border-radius:6px;text-decoration:none;white-space:nowrap">Unlock &rarr;</a>
   </div>
 
   <!-- USAGE METER -->
   <div id="usageMeter" style="font-size:11px;color:#444;text-align:right;margin-bottom:4px"></div>
-  <!-- VOICE BUTTON (premium) -->
-  <button id="voiceBtn" onclick="handleVoice()" style="background:transparent;border:1px solid #333;color:#555;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;width:100%;margin-bottom:4px" title="Voice input — Premium only">&#127908; Voice Input (Premium)</button>
+
+  <!-- ─── UNLOCK CTA BLOCK ─── -->
+  <div style="background:#0f0f00;border:1px solid rgba(255,214,0,0.25);border-radius:12px;padding:20px 22px;margin-bottom:12px">
+    <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#FFD600;font-weight:700;margin-bottom:6px">Unlock Full Access</div>
+    <div style="font-size:14px;color:#aaa;margin-bottom:14px;line-height:1.6">You've started seeing where you stand. Go deeper with full clarity, testing, and progress tracking.</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+      <div style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600">&#9656;</span> Unlimited daily messages</div>
+      <div style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600">&#9656;</span> All 6 understanding tests unlocked</div>
+      <div style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600">&#9656;</span> Voice input + output (Premium)</div>
+      <div style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600">&#9656;</span> Growth dashboard + topic tracking</div>
+    </div>
+    <button onclick="showPaywall('voice')" style="width:100%;background:#FFD600;color:#000;font-weight:900;font-size:15px;padding:13px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.02em">See Membership Options &rarr;</button>
+    <div style="text-align:center;margin-top:8px"><a href="#" style="font-size:12px;color:#555;text-decoration:underline">Already a member? Sign in</a></div>
+  </div>
 
   <div id="out">Ask something real.</div>
+
+  <!-- ─── DEAD SPACE BRIDGE ─── -->
+  <div id="testBridge" style="text-align:center;padding:28px 0 8px">
+    <div style="font-size:16px;font-weight:700;color:#aaa;margin-bottom:14px;line-height:1.5">Most people think they understand.<br><span style="color:#fff">Few actually do.</span></div>
+    <button onclick="openTestModal('faith')" style="background:transparent;border:2px solid #FFD600;color:#FFD600;font-weight:800;font-size:14px;padding:12px 28px;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.02em;transition:all 0.2s" onmouseover="this.style.background='rgba(255,214,0,0.1)'" onmouseout="this.style.background='transparent'">Test Where You Really Stand &rarr;</button>
+  </div>
   <div class="study-done-banner" id="studyDoneBanner">
     <h3>You've taken in enough for today.</h3>
     <p>Growth happens when you apply what you've learned &mdash; not when you keep consuming. Come back when you've put it into practice.</p>
@@ -802,7 +823,7 @@
 <div class="product-section">
 
   <div class="section-tag">Start Here</div>
-  <div class="section-title">Start with a specific issue</div>
+  <div class="section-title">Start with a topic that matters to you</div>
   <div class="section-sub">Each PDF is focused, direct, and built from real teachings — not generic devotionals.</div>
 
   <div class="product-grid">
@@ -929,7 +950,30 @@
     sessionStorage.setItem('gp73_session', id);
     return id;
   })();
+
+  // ── TIER STRUCTURE (free | circle | core | premium) ──────────────────────
+  // Ensure tier flag is initialized — ready for Stripe integration
+  if (!localStorage.getItem('gp73_tier')) localStorage.setItem('gp73_tier', 'free');
   const gp73Tier = localStorage.getItem('gp73_tier') || 'free';
+  // Tier capabilities map (UI can reference this when checking access)
+  const GP73_TIERS = {
+    free:    { label: 'Free',              dailyLimit: 5,   allTopics: false, voice: false, dashboard: false },
+    circle:  { label: 'Discipleship Circle', dailyLimit: 15, allTopics: false, voice: false, dashboard: false },
+    core:    { label: 'Core System',       dailyLimit: 40,  allTopics: true,  voice: false, dashboard: true  },
+    premium: { label: 'Premium',           dailyLimit: 100, allTopics: true,  voice: true,  dashboard: true  }
+  };
+
+  // ── STRIPE CHECKOUT PLACEHOLDER (connect Stripe later — do NOT remove) ───
+  function startStripeCheckout(tier) {
+    // TODO: Replace with real Stripe checkout session creation
+    console.log('[GP73] Stripe checkout placeholder — tier:', tier);
+    const msgs = {
+      core:    'Core access is coming soon. You\'re early — full system unlocking is being finalized.\n\nYou\'ll get full chat, all tests, and growth tracking.',
+      premium: 'Premium access (with voice) is coming soon.\n\nYou\'ll get everything + voice interaction + priority access.'
+    };
+    alert(msgs[tier] || 'Coming soon.');
+    return false;
+  }
   let chatCount = parseInt(localStorage.getItem('gp73_chat_count') || '0');
   const chatDate = localStorage.getItem('gp73_chat_date') || '';
   const today = new Date().toISOString().slice(0, 10);
@@ -1322,15 +1366,15 @@
             <div class="gp73-tier-name">Discipleship Circle</div>
             <div class="gp73-tier-desc">Guided teaching and consistency system &mdash; light interaction, not full system access</div>
           </a>
-          <a href="#" class="gp73-tier-card featured" target="_blank">
+          <a href="#" onclick="startStripeCheckout('core');return false" class="gp73-tier-card featured">
             <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">RECOMMENDED</span></div>
             <div class="gp73-tier-name">Core System</div>
             <div class="gp73-tier-desc">Full tests + dashboard + all topics + growth tracking</div>
           </a>
-          <a href="#" class="gp73-tier-card" target="_blank">
-            <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge" style="background:#888;color:#000">INTRO</span></div>
-            <div class="gp73-tier-name">Premium (14-day intro)</div>
-            <div class="gp73-tier-desc">Everything in Core + voice &mdash; then $39/mo</div>
+          <a href="#" onclick="startStripeCheckout('premium');return false" class="gp73-tier-card">
+            <div class="gp73-tier-price">$39<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
+            <div class="gp73-tier-name">Premium &mdash; Voice + Full Access</div>
+            <div class="gp73-tier-desc">Everything in Core + voice input/output + priority access</div>
           </a>
         </div>
         <button class="gp73-close" onclick="closeModal('testModal')">Maybe later</button>
@@ -1352,15 +1396,15 @@
           <div class="gp73-tier-name">Discipleship Circle</div>
           <div class="gp73-tier-desc">Guided teaching and consistency system &mdash; light interaction, not full system access</div>
         </a>
-        <a href="#" class="gp73-tier-card featured" target="_blank">
+        <a href="#" onclick="startStripeCheckout('core');return false" class="gp73-tier-card featured">
           <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">BEST VALUE</span></div>
           <div class="gp73-tier-name">Core System</div>
           <div class="gp73-tier-desc">Full chat + all tests + dashboard + topic progression</div>
         </a>
-        <a href="#" class="gp73-tier-card" target="_blank">
-          <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> &rarr; $39 <span class="gp73-tier-badge" style="background:#888;color:#000">INTRO</span></div>
-          <div class="gp73-tier-name">Premium</div>
-          <div class="gp73-tier-desc">Everything + voice input/output + priority access</div>
+        <a href="#" onclick="startStripeCheckout('premium');return false" class="gp73-tier-card">
+          <div class="gp73-tier-price">$39<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
+          <div class="gp73-tier-name">Premium &mdash; Voice + Full Access</div>
+          <div class="gp73-tier-desc">Everything in Core + voice input/output + priority access</div>
         </a>
       </div>
       <button class="gp73-close" onclick="closeModal('paywallModal')">Maybe later</button>
