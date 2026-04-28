@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GP73 — Discipleship Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #f4f4f4;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-brand-name { color: #FFD600; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { color: #aaa; text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: #FFD600; }
+    .nav-cta {
+      background: #FFD600; color: #000; font-weight: 700;
+      padding: 10px 20px; border-radius: 8px; text-decoration: none;
+      font-size: 14px; transition: opacity 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* LAYOUT */
+    .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    /* HEADER */
+    .page-header { margin-bottom: 40px; }
+    .page-header h1 { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+    .page-header p { color: #888; font-size: 15px; }
+    .stage-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .stage-hungry { background: rgba(255,214,0,0.15); color: #FFD600; border: 1px solid rgba(255,214,0,0.3); }
+    .stage-stuck { background: rgba(255,80,80,0.1); color: #ff6060; border: 1px solid rgba(255,80,80,0.2); }
+    .stage-growing { background: rgba(80,200,120,0.1); color: #50c878; border: 1px solid rgba(80,200,120,0.2); }
+
+    /* STAT CARDS */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 12px;
+      padding: 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: #FFD600;
+      border-radius: 3px 0 0 3px;
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #FFD600;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-sub { font-size: 13px; color: #555; }
+
+    /* SECTION HEADERS */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f4f4f4;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .section { margin-bottom: 40px; }
+
+    /* LEVEL BAR */
+    .level-block {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .level-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+    .level-label { font-size: 13px; color: #888; }
+    .level-name { font-size: 20px; font-weight: 800; color: #FFD600; }
+    .level-fraction { font-size: 13px; color: #555; }
+    .progress-track {
+      background: #1a1a1a;
+      border-radius: 100px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #FFD600, #ffb700);
+      border-radius: 100px;
+      transition: width 0.8s ease;
+    }
+    .level-checkpoints {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #444;
+    }
+    .level-checkpoints span.reached { color: #FFD600; }
+
+    /* TOPICS */
+    .topic-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .topic-tag {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #ccc;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .topic-tag .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #FFD600;
+      display: inline-block;
+    }
+
+    /* PATTERN + NEXT STEP CARDS */
+    .insight-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) { .insight-grid { grid-template-columns: 1fr; } }
+    .insight-card {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .insight-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #FFD600;
+      margin-bottom: 10px;
+    }
+    .insight-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .insight-card p { font-size: 14px; color: #888; line-height: 1.6; }
+
+    /* GROWTH CHART */
+    .chart-wrap {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 100px;
+      margin-bottom: 8px;
+    }
+    .chart-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .chart-bar {
+      width: 100%;
+      background: #FFD600;
+      border-radius: 3px 3px 0 0;
+      transition: height 0.6s ease;
+      min-height: 4px;
+    }
+    .chart-label { font-size: 10px; color: #444; }
+
+    /* STREAK */
+    .streak-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .streak-day {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: #1a1a1a;
+      border: 1px solid #222;
+    }
+    .streak-day.active { background: #FFD600; border-color: #FFD600; }
+    .streak-day.today { background: #FFD600; border-color: #fff; box-shadow: 0 0 0 2px #fff2; }
+
+    /* CTA BANNER */
+    .upgrade-banner {
+      background: linear-gradient(135deg, #111 0%, #151200 100%);
+      border: 1px solid rgba(255,214,0,0.25);
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .upgrade-banner h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .upgrade-banner p { font-size: 14px; color: #888; }
+    .upgrade-btn {
+      background: #FFD600;
+      color: #000;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 15px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .upgrade-btn:hover { opacity: 0.85; }
+
+    @media (max-width: 640px) {
+      .upgrade-banner { flex-direction: column; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="/bible.png" alt="Bible" style="height:28px" />
+    <img src="/GPlogo.png" alt="GP" style="height:28px" />
+    <span class="nav-brand-name">GP73</span>
+  </div>
+  <div class="nav-links">
+    <a href="/">Resources</a>
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/" class="nav-cta">Get Access →</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>Your Discipleship Dashboard</h1>
+    <p>Tracking your growth, patterns, and alignment over time.</p>
+    <span class="stage-badge stage-hungry">Stage: Hungry</span>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Consistency Streak</div>
+      <div class="stat-value">12</div>
+      <div class="stat-sub">days in a row</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Alignment Score</div>
+      <div class="stat-value">74%</div>
+      <div class="stat-sub">up 8% this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Growth Rate</div>
+      <div class="stat-value">+18%</div>
+      <div class="stat-sub">vs last 30 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Topics Engaged</div>
+      <div class="stat-value">7</div>
+      <div class="stat-sub">faith, sin, soul, prayer...</div>
+    </div>
+  </div>
+
+  <!-- LEVEL -->
+  <div class="level-block">
+    <div class="level-row">
+      <div>
+        <div class="level-label">Current Level</div>
+        <div class="level-name">30-Fold</div>
+      </div>
+      <div class="level-fraction">47 / 100 points to 60-Fold</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" style="width: 47%"></div>
+    </div>
+    <div class="level-checkpoints">
+      <span class="reached">◆ 30-Fold</span>
+      <span>◆ 60-Fold</span>
+      <span>◆ 100-Fold</span>
+    </div>
+  </div>
+
+  <!-- STREAK -->
+  <div class="section">
+    <div class="section-title">Consistency — Last 30 Days</div>
+    <div class="streak-grid">
+      <!-- mock: 12 active days out of 30 -->
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day active"></div>
+      <div class="streak-day today"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+      <div class="streak-day"></div>
+    </div>
+  </div>
+
+  <!-- TOPICS -->
+  <div class="section">
+    <div class="section-title">Topics You've Engaged</div>
+    <div class="topic-grid">
+      <div class="topic-tag"><span class="dot"></span> Faith</div>
+      <div class="topic-tag"><span class="dot"></span> Sin</div>
+      <div class="topic-tag"><span class="dot"></span> Soul</div>
+      <div class="topic-tag"><span class="dot"></span> Prayer</div>
+      <div class="topic-tag"><span class="dot"></span> Kingdom</div>
+      <div class="topic-tag"><span class="dot"></span> Transformation</div>
+      <div class="topic-tag"><span class="dot"></span> Identity</div>
+    </div>
+  </div>
+
+  <!-- GROWTH CHART -->
+  <div class="section">
+    <div class="section-title">Growth Over Time</div>
+    <div class="chart-wrap">
+      <div class="chart-bars">
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:30%"></div>
+          <span class="chart-label">W1</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:42%"></div>
+          <span class="chart-label">W2</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:55%"></div>
+          <span class="chart-label">W3</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:48%"></div>
+          <span class="chart-label">W4</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:63%"></div>
+          <span class="chart-label">W5</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:70%"></div>
+          <span class="chart-label">W6</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:78%"></div>
+          <span class="chart-label">W7</span>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:85%"></div>
+          <span class="chart-label">W8</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#444;margin-top:4px">Alignment score by week</div>
+    </div>
+  </div>
+
+  <!-- PATTERN + NEXT STEP -->
+  <div class="section">
+    <div class="section-title">Your Pattern & Next Step</div>
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="insight-tag">What's holding you back</div>
+        <h3>Acknowledgement without application</h3>
+        <p>You understand the truth but haven't moved into consistent action yet. Knowledge is ahead of alignment.</p>
+      </div>
+      <div class="insight-card">
+        <div class="insight-tag">Next step</div>
+        <h3>Pick one area. Act today.</h3>
+        <p>Stop working on multiple areas at once. Choose the one that keeps showing up in your sessions and do the opposite of what you've been doing.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOMINANT PATTERN -->
+  <div class="section">
+    <div class="section-title">Dominant Conversation Pattern</div>
+    <div class="insight-card">
+      <div class="insight-tag">Pattern detected</div>
+      <h3>HUNGER — Actively seeking, ready to grow</h3>
+      <p>Your questions consistently push toward deeper understanding. You're not stuck — you're accelerating. The next level requires moving from asking to applying.</p>
+    </div>
+  </div>
+
+  <!-- UPGRADE BANNER -->
+  <div class="upgrade-banner">
+    <div>
+      <h2>Ready to unlock full tracking?</h2>
+      <p>Join the Discipleship Circle to get persistent growth tracking, pattern reports, and deeper access.</p>
+    </div>
+    <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="upgrade-btn" target="_blank">
+      Join — $7/month →
+    </a>
+  </div>
+
+</div>
+
+</body>
+</html>
