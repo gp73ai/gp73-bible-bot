@@ -1188,18 +1188,28 @@
   // ── TEST MODAL ────────────────────────────────────────────────────────────
   const TEST_DATA = {
     faith: { title: 'Faith Foundations', questions: [
-      { q: 'What is faith based on?', opts: ['A feeling of confidence', 'The Word of God', 'How often you pray', 'Your past experiences'], c: 1, fix: 'Faith comes from the Word of God, not feelings.' },
-      { q: 'What does renewing your mind require?', opts: ['Positive thinking', 'Consistent exposure to the Word and new patterns', 'Attending church more', 'Prayer alone'], c: 1, fix: 'Renewal requires the Word actively reshaping your thinking.' },
+      // FOUNDATIONAL (1-3)
+      { q: 'What is faith based on?', opts: ['A feeling of confidence', 'The Word of God', 'How often you pray', 'Your past experiences'], c: 1, fix: 'Faith comes from the Word of God, not feelings or frequency.' },
       { q: 'What happens when faith is disconnected from the Word?', opts: ['It still works if sincere', 'God fills the gap', 'It produces nothing', 'It weakens slowly'], c: 2, fix: 'Faith without the Word has no source and produces nothing.' },
+      { q: 'Faith operates like:', opts: ['A wish', 'A feeling', 'A law', 'A request'], c: 2, fix: 'Faith has laws, boundaries, and structure. It is not random.' },
+      // INTERMEDIATE (4-5)
       { q: 'What is the correct order of faith?', opts: ['See it then believe', 'Feel it then confess', 'Believe it then see it', 'Ask then receive'], c: 2, fix: 'You believe before you see. That is how faith operates.' },
-      { q: 'Faith operates like:', opts: ['A wish', 'A feeling', 'A law', 'A request'], c: 2, fix: 'Faith has laws, boundaries, and structure. It is not random.' }
+      { q: 'What does renewing your mind require?', opts: ['Positive thinking', 'Consistent exposure to the Word and new patterns', 'Attending church more', 'Prayer alone'], c: 1, fix: 'Renewal requires the Word actively reshaping your thinking — not just exposure.' },
+      // APPLICATION (6-7)
+      { q: 'If someone says their faith is not working, what is most likely the real issue?', opts: ['They need more prayer', 'They have unresolved sin', 'Their faith is not rooted in the Word', 'They lack enough church attendance'], c: 2, fix: 'Faith that is not producing results is usually not grounded in the Word — it is grounded in emotion or assumption.' },
+      { q: 'Which statement best describes how faith and action relate?', opts: ['Faith alone is sufficient — action is optional', 'Action proves the sincerity of faith', 'Faith without corresponding action remains incomplete', 'Action comes before faith'], c: 2, fix: 'Faith that does not produce corresponding action reveals that the truth has not yet become real to the person.' }
     ]},
     salvation: { title: 'Salvation Foundations', questions: [
+      // FOUNDATIONAL (1-3)
       { q: 'What is salvation?', opts: ['Feeling better about yourself', 'A religious title', 'Transformation that starts with a new spirit', 'Church membership'], c: 2, fix: 'Salvation is the beginning of transformation, not a religious label.' },
       { q: 'What changes immediately at salvation?', opts: ['Your soul and habits', 'Your spirit and heart', 'Your personality', 'Your desires'], c: 1, fix: 'Your spirit changes instantly. The soul must be renewed over time.' },
+      { q: 'Salvation is:', opts: ['The finish line', 'A feeling', 'The starting line of transformation', 'A title you earn'], c: 2, fix: 'Salvation is the beginning. Transformation is what comes after.' },
+      // INTERMEDIATE (4-5)
       { q: 'What must follow salvation to produce real change?', opts: ['More church attendance', 'Renewing the mind through the Word', 'Finding a mentor', 'Praying more'], c: 1, fix: 'Salvation starts the process. Renewing the mind continues it.' },
       { q: 'Why do saved people still struggle?', opts: ['They were not truly saved', 'The soul still has old patterns', 'God is testing them', 'Salvation was incomplete'], c: 1, fix: 'The soul carries old patterns until it is intentionally renewed.' },
-      { q: 'Salvation is:', opts: ['The finish line', 'A feeling', 'The starting line of transformation', 'A title you earn'], c: 2, fix: 'Salvation is the beginning. Transformation is what comes after.' }
+      // APPLICATION (6-7)
+      { q: 'Someone gets saved but their life looks the same after 2 years. What is most likely missing?', opts: ['They were not genuinely saved', 'They need more prayer', 'Intentional renewal of the mind has not happened', 'God has not moved yet'], c: 2, fix: 'Salvation changes the spirit instantly. But without intentional mind renewal, the soul keeps operating by its old patterns.' },
+      { q: 'Which best describes the relationship between salvation and discipleship?', opts: ['They are the same thing', 'Salvation is optional — discipleship is what matters', 'Salvation opens the door — discipleship is the process of walking through it', 'Discipleship is for serious Christians only'], c: 2, fix: 'Salvation is the entry point. Discipleship is the ongoing process of becoming who God saved you to be.' }
     ]}
   };
 
@@ -1207,7 +1217,8 @@
   let testsTaken = parseInt(localStorage.getItem('gp73_tests_taken') || '0');
   let activeTopic = null;
   let currentQ = 0;
-  let testScore = 0;
+  let testScore = 0;       // kept for legacy dashboard compat (0-100)
+  let correctCount = 0;    // raw correct answers out of 7 — used for tier routing
 
   function openTestModal(preselect) {
     resetTestModal();
@@ -1219,7 +1230,7 @@
   }
 
   function resetTestModal() {
-    activeTopic = null; currentQ = 0; testScore = 0;
+    activeTopic = null; currentQ = 0; testScore = 0; correctCount = 0;
     showScreen('screenSelect');
     hideScreen('screenQuiz');
     hideScreen('screenResult');
@@ -1252,10 +1263,11 @@
       showScreen('screenPaywall'); hideScreen('screenSelect');
       return;
     }
+    correctCount = 0;
     hideScreen('screenSelect'); showScreen('screenQuiz');
     const d = TEST_DATA[activeTopic];
     document.getElementById('testTopicLabel').textContent = activeTopic.charAt(0).toUpperCase() + activeTopic.slice(1) + ' Track';
-    document.getElementById('testTitle').textContent = d.title + ' Test';
+    document.getElementById('testTitle').textContent = d.title + ' — Placement Assessment';
     const steps = document.getElementById('testSteps');
     steps.innerHTML = d.questions.map((_, i) => '<div class="gp73-step" id="ts' + i + '"></div>').join('');
     renderTestQ();
@@ -1264,9 +1276,9 @@
   function renderTestQ() {
     const d = TEST_DATA[activeTopic];
     const q = d.questions[currentQ];
-    // Determine if partial test (second test, free user)
+    // Partial test: second attempt on free tier gets 4 questions
     const isPartial = testsTaken >= 1 && gp73Tier === 'free';
-    const maxQ = isPartial ? 3 : 5;
+    const maxQ = isPartial ? 4 : 7;
     document.getElementById('testProgress').textContent = 'Question ' + (currentQ + 1) + ' of ' + maxQ;
     d.questions.forEach((_, i) => {
       const el = document.getElementById('ts' + i);
@@ -1283,13 +1295,14 @@
     const d = TEST_DATA[activeTopic];
     const q = d.questions[currentQ];
     const isPartial = testsTaken >= 1 && gp73Tier === 'free';
-    const maxQ = isPartial ? 3 : 5;
+    const maxQ = isPartial ? 4 : 7;
     document.querySelectorAll('.gp73-opt').forEach(o => o.setAttribute('onclick', ''));
     const fb = document.getElementById('tfb');
     if (idx === q.c) {
       el.classList.add('ok');
       fb.textContent = '\u2713 Correct.'; fb.className = 'gp73-fb ok';
-      testScore += isPartial ? Math.round(100 / maxQ) : 20;
+      correctCount++;
+      testScore = Math.round((correctCount / maxQ) * 100); // legacy 0-100
     } else {
       el.classList.add('bad');
       document.querySelectorAll('.gp73-opt')[q.c].classList.add('ok');
@@ -1309,34 +1322,81 @@
   }
 
   function showTestResult() {
-    hideScreen('screenQuiz'); showScreen('screenResult');
-    let stage, stageCls, identity, action;
-    const s = testScore;
-    if (s <= 40) { stage = 'STUCK'; stageCls = 'stage-stuck'; identity = 'You have foundational gaps that need to be addressed.'; action = 'Go back through the core teaching on this topic before testing again.'; }
-    else if (s <= 60) { stage = 'AWARE'; stageCls = 'stage-aware'; identity = 'You have surface understanding but are not yet grounded in the depth of this truth.'; action = 'Review what you got wrong and engage with this topic 3 more days.'; }
-    else if (s <= 80) { stage = 'HUNGRY'; stageCls = 'stage-hungry'; identity = 'You understand the truth. Consistency is now the gap.'; action = 'Apply one principle from this topic this week.'; }
-    else { stage = 'GROWING'; stageCls = 'stage-growing'; identity = 'You are aligned in this area. The knowledge is showing up in how you live.'; action = 'Move to the next topic or unlock full tracking.'; }
-    // PATCH 3: Stage-based insight
-    const insights = {
-      STUCK: "You understand the words but the foundation is not solid yet. That is the real gap.",
-      AWARE: "You have surface understanding but have not made it your own through application.",
-      HUNGRY: "You understand truth, but you are not applying it consistently. That is the next step.",
-      GROWING: "You are aligned in this area. Now strengthen consistency and move to the next topic."
-    };
-    const insightEl = document.getElementById('testResultStageInsight');
-    if (insightEl) insightEl.textContent = insights[stage] || '';
-    document.getElementById('testResultScore').textContent = s;
-    const pill = document.getElementById('testResultPill');
-    pill.textContent = stage; pill.className = 'gp73-stage-pill ' + stageCls;
-    document.getElementById('testResultIdentity').textContent = identity;
-    document.getElementById('testResultAction').textContent = action;
+    hideScreen('screenQuiz');
+
+    // ── PLACEMENT TIER ROUTING (0-7 raw score) ─────────────────────────────
+    const raw = correctCount; // out of 7
+    let tier, tierLabel, tierCls, message, ctaHtml;
+
+    if (raw <= 3) {
+      // TIER 1 — FOUNDATION
+      tier = 'foundation';
+      tierLabel = "You're still building your foundation";
+      tierCls = 'stage-stuck';
+      message = "You may recognize some truth, but you're not yet consistent in understanding or application.";
+      ctaHtml = '<a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-result-cta" target="_blank" style="display:block;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;text-decoration:none;margin-bottom:10px">Start Building Your Foundation &rarr;</a>';
+    } else if (raw <= 6) {
+      // TIER 2 — GROWTH
+      tier = 'growth';
+      tierLabel = "You're growing, but not consistent yet";
+      tierCls = 'stage-aware';
+      message = "You understand key truths, but there are gaps that will limit your growth if not corrected.";
+      ctaHtml = '<button class="gp73-result-cta" onclick="startStripeCheckout('core')" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px">Strengthen Your Understanding &rarr;</button>';
+    } else {
+      // TIER 3 — ADVANCED (7/7)
+      tier = 'advanced';
+      tierLabel = "You're not a beginner";
+      tierCls = 'stage-growing';
+      message = '';
+      ctaHtml = '<button class="gp73-result-cta" onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.')" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px">Step Into the Leadership Track &rarr;</button>';
+    }
+
+    // Save placement to localStorage
+    localStorage.setItem('gp73_last_score', raw);
+    localStorage.setItem('gp73_user_level', tier);
+    testScore = Math.round((raw / 7) * 100); // sync legacy score
+    saveTestScore();
+
+    // ── BUILD RESULT SCREEN ───────────────────────────────────────────────
+    const screen = document.getElementById('screenResult');
+    screen.style.display = 'block';
+
+    let advancedBlock = '';
+    if (tier === 'advanced') {
+      advancedBlock = '<div style="background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:16px 18px;margin-bottom:20px">' +
+        '<p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">You're not struggling with understanding — you're ready to handle it.</p>' +
+        '<p style="font-size:14px;color:#aaa;margin-bottom:8px">Most people are trying to figure things out. You're already answering correctly.</p>' +
+        '<p style="font-size:14px;color:#aaa">The real question is — what are you doing with what you know?</p>' +
+        '</div>' +
+        '<div style="border:1px solid #333;border-radius:10px;padding:16px 18px;margin-bottom:20px">' +
+        '<p style="font-size:14px;font-weight:700;color:#FFD600;margin-bottom:6px">"If you truly understand this, you should be able to teach it."</p>' +
+        '<p style="font-size:13px;color:#666">Most people think they understand until they try to explain it.</p>' +
+        '</div>';
+    }
+
+    let messageBlock = message
+      ? '<div style="font-size:14px;color:#aaa;margin-bottom:20px;line-height:1.6">' + message + '</div>'
+      : '';
+
+    screen.innerHTML =
+      '<div style="font-size:52px;font-weight:900;color:#FFD600;line-height:1;margin-bottom:4px">' + raw + '<span style="font-size:22px;color:#555">/7</span></div>' +
+      '<div style="font-size:13px;color:#555;margin-bottom:14px">correct answers</div>' +
+      '<div class="gp73-stage-pill ' + tierCls + '" style="margin-bottom:14px">' + tierLabel + '</div>' +
+      messageBlock +
+      advancedBlock +
+      ctaHtml +
+      '<button onclick="improveThisArea()" style="width:100%;background:transparent;border:1px solid rgba(255,214,0,0.4);color:#FFD600;font-size:14px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px">Go Practice This Topic</button>' +
+      '<button class="gp73-close" onclick="closeModal('testModal')">Close</button>';
   }
 
   function saveTestScore() {
     const scores = JSON.parse(localStorage.getItem('gp73_scores') || '{}');
     if (!scores[activeTopic]) scores[activeTopic] = [];
-    scores[activeTopic].push(testScore);
+    scores[activeTopic].push({ score: testScore, raw: correctCount, level: localStorage.getItem('gp73_user_level') || 'foundation', ts: Date.now() });
     localStorage.setItem('gp73_scores', JSON.stringify(scores));
+    // Also persist flat values for quick dashboard reads
+    localStorage.setItem('gp73_last_score', correctCount);
+    localStorage.setItem('gp73_last_topic', activeTopic);
   }
 
   // PATCH 3: Improve This Area — close modal, preload chat
@@ -1373,7 +1433,7 @@
   <div class="gp73-modal">
     <div id="screenSelect">
       <h2>Measure Your Understanding</h2>
-      <p class="gp73-modal-sub">Choose a topic. 5 questions. Immediate feedback per answer.</p>
+      <p class="gp73-modal-sub">Choose a topic. 7 questions. Find out exactly where you stand.</p>
       <div class="gp73-pills">
         <button class="gp73-sel-pill" data-topic="faith" onclick="selectTestTopic('faith',this)">&#128218; Faith</button>
         <button class="gp73-sel-pill" data-topic="salvation" onclick="selectTestTopic('salvation',this)">&#9989; Salvation</button>
@@ -1396,15 +1456,7 @@
       <div id="testQuizBody"></div>
     </div>
     <div id="screenResult" style="display:none">
-      <div class="gp73-result-score" id="testResultScore">0</div>
-      <div style="font-size:14px;color:#666;margin-bottom:12px">/ 100</div>
-      <div class="gp73-stage-pill stage-hungry" id="testResultPill"></div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px" id="testResultIdentity"></div>
-      <div style="font-size:14px;color:#888;margin-bottom:24px;line-height:1.6" id="testResultAction"></div>
-      <div id="testResultStageInsight" style="font-size:14px;color:#aaa;margin-bottom:16px;line-height:1.5;font-style:italic"></div>
-      <button onclick="improveThisArea()" style="width:100%;background:transparent;border:1px solid rgba(255,214,0,0.4);color:#FFD600;font-size:14px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px">Improve This Area</button>
-      <a href="/dashboard" class="gp73-result-cta">Track My Growth &rarr;</a>
-      <button class="gp73-close" onclick="closeModal('testModal')">Close</button>
+      <!-- Dynamically built by showTestResult() — do not add static content here -->
     </div>
     <div id="screenPaywall" style="display:none">
       <div class="gp73-paywall">
