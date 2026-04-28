@@ -731,21 +731,21 @@
   <!-- DUAL CTA -->
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
     <button class="ask-btn" onclick="ask()" style="flex:1;min-width:160px">Get Clarity &rarr;</button>
-    <button class="ask-btn" onclick="openTestModal()" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
+    <button class="ask-btn" onclick="openTestModal('faith')" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
   </div>
   <div style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;margin-top:2px">Start here if you want to see where you stand</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
     <span style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;align-self:center;margin-right:4px">Topics:</span>
     <button class="gp73-topic-pill" onclick="openTestModal('faith')">Faith</button>
     <button class="gp73-topic-pill" onclick="openTestModal('salvation')">Salvation</button>
-    <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Kingdom</button>
-    <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Identity</button>
-    <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Prayer</button>
+    <button class="gp73-topic-pill locked" onclick="showPaywall('test')">&#128274; Kingdom</button>
+    <button class="gp73-topic-pill locked" onclick="showPaywall('test')">&#128274; Identity</button>
+    <button class="gp73-topic-pill locked" onclick="showPaywall('test')">&#128274; Prayer</button>
   </div>
   <!-- UNLOCK SIGNAL above locked topics -->
   <div style="font-size:12px;color:#555;margin-bottom:6px">&#128274; <span style="color:#aaa">3 more topics available with membership &mdash;</span> <span style="color:#FFD600;text-decoration:underline;cursor:pointer" onclick="showPaywall('test')">unlock them &rarr;</span></div>
 
-  <div id="topicLockNudge" style="display:none;background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#aaa;margin-bottom:8px;display:none;align-items:center;justify-content:space-between;gap:10px">
+  <div id="topicLockNudge" style="display:none;background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#aaa;margin-bottom:8px;align-items:center;justify-content:space-between;gap:10px">
     <span>This topic unlocks with Core access.</span>
     <a href="#" onclick="showPaywall('test');return false" style="background:#FFD600;color:#000;font-weight:700;font-size:12px;padding:5px 12px;border-radius:6px;text-decoration:none;white-space:nowrap">Unlock &rarr;</a>
   </div>
@@ -791,11 +791,26 @@
   </div>
   <script>
   function openFounderVideo() {
-    var videoId = ''; // TODO: replace with real YouTube video ID
-    if (!videoId) { window.open('https://www.youtube.com/@iamgodsprisoner', '_blank'); return; }
-    document.getElementById('videoThumb').style.display = 'none';
-    document.getElementById('ytFrame').src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1';
-    document.getElementById('videoEmbed').style.display = 'block';
+    var videoId = ''; // TODO: set real YouTube video ID here e.g. 'dQw4w9WgXcQ'
+    if (videoId) {
+      // Real video: expand inline
+      document.getElementById('videoThumb').style.display = 'none';
+      document.getElementById('ytFrame').src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+      document.getElementById('videoEmbed').style.display = 'block';
+    } else {
+      // Placeholder: show coming-soon overlay inside the thumb container
+      var thumb = document.getElementById('videoThumb');
+      thumb.innerHTML = '<div style="position:absolute;inset:0;background:#0d0d0d;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">' +
+        '<div style="font-size:28px;margin-bottom:12px">&#127910;</div>' +
+        '<div style="font-size:16px;font-weight:700;color:#FFD600;margin-bottom:8px">Teaching video coming soon</div>' +
+        '<div style="font-size:13px;color:#888;margin-bottom:20px">Apostle Sedrick Davis is recording the foundation teaching. Subscribe to know when it drops.</div>' +
+        '<a href="https://www.youtube.com/@iamgodsprisoner" target="_blank" style="background:#FFD600;color:#000;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;text-decoration:none">Subscribe on YouTube &rarr;</a>' +
+        '<div style="margin-top:14px;font-size:12px;color:#444;cursor:pointer" onclick="location.reload()">&#8592; Back</div>' +
+        '</div>';
+      thumb.onclick = null;
+      thumb.style.cursor = 'default';
+      thumb.style.borderColor = 'rgba(255,214,0,0.4)';
+    }
   }
   </script>
   <div class="study-done-banner" id="studyDoneBanner">
@@ -970,7 +985,7 @@
  <div class="ladder-price">$29</div>
  <div>
  <div class="ladder-name">Clarity Bundle</div>
- <div class="ladder-desc">7 focused teachings designed to reset how you think, interpret scripture, and apply truth in real life.</div>
+ <div class="ladder-desc">7 focused teachings designed to reset how you think, interpret scripture, and apply truth in real life. Structured for fast clarity and immediate understanding.</div>
  </div>
  <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get the Bundle</a>
  </div>
@@ -978,8 +993,8 @@
   <div class="ladder-row">
  <div class="ladder-price">$99</div>
  <div>
- <div class="ladder-name">GP73 Discipleship AI</div>
- <div class="ladder-desc">Walk through scripture step-by-step. Get real interpretation, guidance, and biblical clarity. Ask questions, study the Bible, and even interpret dreams through a biblical lens. Built from Apostle Davis' teachings. Not a chatbot — a guide that helps you grow.</div>
+ <div class="ladder-name">GP73 Biblical Framework</div>
+ <div class="ladder-desc">7 structured video teaching modules that teach you how to interpret scripture correctly, understand spiritual patterns, and uncover deeper meaning in the Word. Built for those ready to move beyond learning into understanding and leadership.</div>
  </div>
  <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get Access</a>
  </div>
@@ -1042,9 +1057,8 @@
 
   // ── TOPIC LOCK NUDGE ──────────────────────────────────────────────────────
   function showTopicLock(el) {
-    const n = document.getElementById('topicLockNudge');
-    n.style.display = 'flex';
-    setTimeout(() => { n.style.display = 'none'; }, 4000);
+    // Redirect to paywall — locked topics now go straight to upgrade
+    showPaywall('test');
   }
 
   // ── CHAT ──────────────────────────────────────────────────────────────────
