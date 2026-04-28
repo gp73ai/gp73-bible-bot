@@ -767,6 +767,29 @@ function extractUserSignal(q) {
 }
 
 // ============================================================
+// CORRECTION SENSITIVITY DETECTOR
+// Only runs when toneClass = CORRECTION
+// HIGH = identity, worth, salvation status, emotional charge
+// LOW = abstract belief error, theological disagreement
+// ============================================================
+function detectCorrectionSensitivity(q) {
+  const lower = q.toLowerCase();
+  const highSensitivitySignals = [
+    // Identity-based
+    'born this way', 'i was made this way', 'gay', 'transgender', 'who i am',
+    'my identity', 'i am who i am',
+    // Worth / salvation status
+    'not good enough', 'too far gone', 'god doesn\'t want me', 'god can\'t love me',
+    'i\'m not saved', 'i don\'t think i\'m saved', 'lost my salvation',
+    'god gave up on me', 'god abandoned me',
+    // Emotionally charged phrasing
+    'nobody cares', 'what\'s the point', 'i give up', 'nobody loves me',
+    'i hate myself', 'i want to die', 'i\'m nothing',
+  ];
+  return highSensitivitySignals.some(s => lower.includes(s)) ? 'HIGH' : 'LOW';
+}
+
+// ============================================================
 // TONE CLASSIFIER
 // Detects whether the user is SEEKING, STRUGGLING, or CORRECTING
 // This drives HOW the response opens and flows -- not what it says
@@ -804,12 +827,30 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
   console.log('[GP73 TONE]', toneClass);
   console.log('[GP73 SIGNAL]', userSignal);
 
+  // For CORRECTION: detect sensitivity level to calibrate delivery
+  const correctionSensitivity = toneClass === 'CORRECTION' ? detectCorrectionSensitivity(question) : null;
+  if (correctionSensitivity) console.log('[GP73 SENSITIVITY]', correctionSensitivity);
+
   // Build tone-specific instruction -- no hardcoded openers, no templates
-  const toneInstruction = toneClass === 'SEEKING'
-    ? `The person is genuinely curious. Open naturally -- no correction, no challenge. Draw them into the truth with clarity and confidence. Start with what the teaching says, not with what they got wrong. Vary how you begin each response.`
-    : toneClass === 'STRUGGLING'
-    ? `The person is hurting or confused. Do NOT open with correction or challenge. Begin with brief acknowledgment of where they are, then move them toward truth from the teachings. Be firm but not harsh. The tone is a steady hand, not a rebuke.`
-    : `The person has a wrong assumption or is resisting truth. Address it directly but do not start with a canned phrase like "Here's the truth" or "You're looking at this wrong." Expose the flaw naturally within the first sentence. Vary the opening -- no repeated patterns.`;
+  let toneInstruction;
+  if (toneClass === 'SEEKING') {
+    toneInstruction = `The person is genuinely curious. Open naturally -- no correction, no challenge. Draw them into the truth with clarity and confidence. Start with what the teaching says, not with what they got wrong. Vary how you begin each response.`;
+  } else if (toneClass === 'STRUGGLING') {
+    toneInstruction = `The person is hurting or confused. Do NOT open with correction or challenge. Begin with brief acknowledgment of where they are, then move them toward truth from the teachings. Be firm but not harsh. The tone is a steady hand, not a rebuke.`;
+  } else if (correctionSensitivity === 'HIGH') {
+    toneInstruction = `This person is dealing with something identity-based, deeply personal, or emotionally charged.
+Do NOT open with blunt rejection or a hard "No."
+Start with a positioning statement that names the real issue at the center of their question.
+Example pattern: "That question comes down to [core issue]." or "What you\'re really asking is whether [core truth]."
+Then deliver the correction clearly and directly from the teaching.
+Preserve full truth -- do not dilute doctrine. Improve HOW it lands, not WHAT it says.
+The correction must feel intentional, not reactive.`;
+  } else {
+    toneInstruction = `The person has a wrong assumption or abstract belief error. Address it directly.
+Do not start with a canned phrase like "Here's the truth" or "You're looking at this wrong."
+Expose the flaw naturally within the first sentence. Vary the opening -- no repeated patterns.
+Direct correction is appropriate here. Be clear and authoritative.`;
+  }
 
   // Build grounded system prompt from teaching context when available
   const structureRule = `
