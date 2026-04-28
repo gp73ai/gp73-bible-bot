@@ -339,13 +339,11 @@
 
   /* #out styles now inline — see HTML */
 
-  /* ─── POST-ANSWER CARDS (hidden by default) ─── */
+  /* ─── GO DEEPER CARDS (always visible) ─── */
   #conversion-cards {
-    display: none;
+    display: block;
     margin-top: 32px;
   }
-
-  #conversion-cards.visible { display: block; }
 
   .conversion-label {
     font-size: 12px;
@@ -835,8 +833,6 @@
   }
   </script>
 
->
-
 </div>
 
   <div class="study-done-banner" id="studyDoneBanner">
@@ -898,7 +894,7 @@
       </div>
 
     </div>
-  </div
+  </div>
 
 <hr class="section-divider" />
 
@@ -963,77 +959,20 @@
 
 </div>
 
-<!-- ─── PRODUCT LADDER ─── -->
-<div class="ladder-section">
-
-  <div class="section-tag">The Full Path</div>
-  <div class="section-title">Choose your level</div>
-  <div class="section-sub">From a single answer to a complete biblical intelligence system working for you 24/7.</div>
-
-  <div class="ladder-row">
-    <div class="ladder-price">Free</div>
-    <div>
-      <div class="ladder-name">Ask GP73</div>
-      <div class="ladder-desc">Ask any biblical question. Get a clear, scripture-based answer. No sign-up required.</div>
+<!-- ─── FRAMEWORK CALLOUT ─── -->
+<div style="max-width:800px;margin:0 auto;padding:0 32px 80px">
+  <div style="background:#0f0f00;border:1px solid rgba(255,214,0,0.3);border-radius:14px;padding:36px 32px;text-align:center">
+    <div style="font-size:11px;color:#FFD600;text-transform:uppercase;letter-spacing:3px;font-weight:700;margin-bottom:12px">GP73 Biblical Framework &mdash; $99</div>
+    <h2 style="font-size:28px;font-weight:900;color:#fff;margin-bottom:16px;line-height:1.2">This is not for learning more.</h2>
+    <p style="font-size:16px;color:#aaa;line-height:1.7;margin-bottom:24px;max-width:560px;margin-left:auto;margin-right:auto">This is for those preparing to rightly divide the Word and help others grow. Seven structured modules. A repeatable system. The dashboard will not guide you &mdash; it will reveal you.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:28px">
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:10px 16px;font-size:13px;color:#ccc">&#9656; 7 structured video modules</div>
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:10px 16px;font-size:13px;color:#ccc">&#9656; How to interpret scripture correctly</div>
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:10px 16px;font-size:13px;color:#ccc">&#9656; Downloadable study PDFs</div>
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:10px 16px;font-size:13px;color:#ccc">&#9656; Full self-directed dashboard</div>
     </div>
-    <a class="ladder-btn" href="#q" onclick="document.getElementById('q').focus()">Ask Now</a>
+    <button onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.')" style="background:#FFD600;color:#000;font-weight:900;font-size:16px;padding:15px 40px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.02em">Get the Framework &rarr;</button>
   </div>
-
-  <div class="ladder-row">
-    <div class="ladder-price">$2–$9</div>
-    <div>
-      <div class="ladder-name">Teaching PDFs</div>
-      <div class="ladder-desc">Focused breakdowns on specific topics. Quick, direct, and built from 20+ years of teaching.</div>
-    </div>
-    <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Browse Store</a>
-  </div>
-
-  <div class="ladder-row">
-    <div class="ladder-price">$7/mo</div>
-    <div>
-      <div class="ladder-name">Starter &mdash; See Where You Stand</div>
-      <div class="ladder-desc">Access foundational tests, basic dashboard tracking, and identify gaps in your understanding.</div>
-    </div>
-    <a class="ladder-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Start Here</a>
-  </div>
-
-  <div class="ladder-row">
-    <div class="ladder-price">$19/mo</div>
-    <div>
-      <div class="ladder-name">Builder &mdash; Start Growing With Structure</div>
-      <div class="ladder-desc">Expanded tests, improved tracking, and consistency in study and application of the Word.</div>
-    </div>
-    <a class="ladder-btn" href="#" onclick="startStripeCheckout('core');return false">Start Growing</a>
-  </div>
-
-  <div class="ladder-row">
-    <div class="ladder-price">$39/mo</div>
-    <div>
-      <div class="ladder-name">Discipleship &mdash; Commit to Real Growth</div>
-      <div class="ladder-desc">Full test access, complete dashboard insights, and a structured path for ongoing development.</div>
-    </div>
-    <a class="ladder-btn" href="#" onclick="startStripeCheckout('premium');return false">Commit to Growth</a>
-  </div>
-
-  <div class="ladder-row">
- <div class="ladder-price">$29</div>
- <div>
- <div class="ladder-name">Clarity Bundle</div>
- <div class="ladder-desc">7 focused teachings designed to reset how you think, interpret scripture, and apply truth in real life. Structured for fast clarity and immediate understanding.</div>
- </div>
- <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get the Bundle</a>
- </div>
-
-  <div class="ladder-row">
- <div class="ladder-price">$99</div>
- <div>
- <div class="ladder-name">GP73 Biblical Framework</div>
- <div class="ladder-desc">7 structured video teaching modules that teach you how to interpret scripture correctly, understand spiritual patterns, and uncover deeper meaning in the Word. Built for those ready to move beyond learning into understanding and leadership.</div>
- <div style="font-size:12px;color:#555;margin-top:8px;line-height:1.5;font-style:italic">Includes dashboard access. The dashboard will not guide you. It will reveal you.</div>
- </div>
- <a class="ladder-btn" href="#" onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.');return false">Get Access</a>
- </div>
-
 </div>
 
 <!-- ─── FOOTER ─── -->
@@ -1120,7 +1059,7 @@
     const out = document.getElementById('out');
     const cards = document.getElementById('conversion-cards');
     out.textContent = 'Thinking...';
-    cards.classList.remove('visible');
+    // cards always visible
 
     try {
       const res = await fetch('/api/ask', {
@@ -1170,8 +1109,7 @@
       }
 
       setTimeout(() => {
-        cards.classList.add('visible');
-        cards.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // cards always visible — no toggle needed
       }, 600);
 
       // Warn at 1 remaining
