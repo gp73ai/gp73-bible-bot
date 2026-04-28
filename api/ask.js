@@ -1640,7 +1640,7 @@ export default async function handler(req, res) {
         source: 'gp73-limit',
         limitType: 'study_session',
         answer: null,
-        message: "You've completed your study session for now. Take time to reflect and review what you've learned. Come back later to continue growing."
+        message: "You've taken in enough for today. Growth happens when you apply what you've learned, not when you keep consuming."
       });
     }
 
@@ -1651,7 +1651,7 @@ export default async function handler(req, res) {
         answer: null,
         remaining: 0,
         limit,
-        message: `You've reached your ${tier === 'free' ? 'free ' : ''}daily limit of ${limit} messages. Unlock more access to keep going.`
+        message: "You've reached the end of this study session. You've started the process, now go deeper."
       });
     }
 
@@ -1752,13 +1752,23 @@ export default async function handler(req, res) {
     const currentUserState = getMemory(sessionId).userState;
     const currentEntry = usageMap.get(sessionId);
     const currentRemaining = Math.max(0, (TIER_LIMITS[tier] || 5) - (currentEntry ? currentEntry.count : 1));
+    const currentStudyCount = currentEntry ? currentEntry.studyCount : 1;
+
+    // PATCH 1: At message 3 for free users, inject conversion nudge
+    const conversionNudge = (tier === 'free' && currentStudyCount === 3) ? {
+      text: "You're starting to get clarity. Now measure your understanding of this.",
+      action: 'test',
+      topic: extractTopic(question)
+    } : null;
+
     console.log('[GP73 FINAL]', finalAnswer);
     return res.status(200).json({
       source: 'gp73-brain',
       answer: finalAnswer,
       userState: currentUserState,
       remaining: currentRemaining,
-      studyCount: currentEntry ? currentEntry.studyCount : 1
+      studyCount: currentStudyCount,
+      conversionNudge
     });
 
   } catch (error) {

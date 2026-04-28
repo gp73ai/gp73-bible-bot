@@ -733,6 +733,7 @@
     <button class="ask-btn" onclick="ask()" style="flex:1;min-width:160px">Get Clarity &rarr;</button>
     <button class="ask-btn" onclick="openTestModal()" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
   </div>
+  <div style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;margin-top:2px">Start here if you want to see where you stand</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
     <span style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;align-self:center;margin-right:4px">Topics:</span>
     <button class="gp73-topic-pill" onclick="openTestModal('faith')">Faith</button>
@@ -753,8 +754,8 @@
 
   <div id="out">Ask something real.</div>
   <div class="study-done-banner" id="studyDoneBanner">
-    <h3>Study session complete.</h3>
-    <p>You've completed your study session for now. Take time to reflect and review what you've learned. Come back later to continue growing.</p>
+    <h3>You've taken in enough for today.</h3>
+    <p>Growth happens when you apply what you've learned &mdash; not when you keep consuming. Come back when you've put it into practice.</p>
   </div>
 
   <!-- POST-ANSWER CONVERSION CARDS (injected after response) -->
@@ -1013,12 +1014,22 @@
 
       out.textContent = data.answer || data.response || JSON.stringify(data, null, 2);
 
-      // Show test nudge after answer if topic detected
+      // PATCH 1: Conversion nudge at message 3
+      if (data.conversionNudge) {
+        const cn = data.conversionNudge;
+        const nudgeBox = document.createElement('div');
+        nudgeBox.style.cssText = 'margin-top:14px;background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:14px 16px';
+        nudgeBox.innerHTML = '<div style="font-size:13px;color:#ccc;margin-bottom:10px">' + cn.text + '</div>' +
+          '<button onclick="openTestModal(\'' + cn.topic + '\')" style="background:#FFD600;color:#000;font-weight:700;font-size:13px;padding:8px 18px;border:none;border-radius:7px;cursor:pointer;font-family:inherit">Measure Your Understanding</button>';
+        out.appendChild(nudgeBox);
+      }
+
+      // PATCH 8: Always show test loop nudge if topic detected
       const topic = detectTopicFromText(q);
-      if (topic) {
+      if (topic && !data.conversionNudge) {
         const nudge = document.createElement('div');
-        nudge.style.cssText = 'margin-top:10px;font-size:12px;color:#555;cursor:pointer';
-        nudge.innerHTML = '&#9656; <span style="color:#FFD600;text-decoration:underline" onclick="openTestModal(\'' + topic + '\')">' + 'Test your understanding of ' + topic + '</span>';
+        nudge.style.cssText = 'margin-top:10px;font-size:12px;color:#666;cursor:pointer';
+        nudge.innerHTML = '&#9656; <span style="color:#FFD600;text-decoration:underline;cursor:pointer" onclick="openTestModal(\'' + topic + '\')">Want to see if you actually understand this?</span>';
         out.appendChild(nudge);
       }
 
@@ -1070,8 +1081,8 @@
   function showPaywall(reason) {
     let headline, body;
     if (reason === 'daily') {
-      headline = "You've reached today's limit.";
-      body = 'Unlock more daily messages and full topic access to keep growing.';
+      headline = "You've reached the end of this study session.";
+      body = "You've started the process. Now go deeper and continue growing.";
     } else if (reason === 'test') {
       headline = "You've started measuring your understanding.";
       body = 'Unlock full test access, all topics, and growth tracking to go deeper.';
@@ -1218,6 +1229,15 @@
     else if (s <= 60) { stage = 'AWARE'; stageCls = 'stage-aware'; identity = 'You have surface understanding but are not yet grounded in the depth of this truth.'; action = 'Review what you got wrong and engage with this topic 3 more days.'; }
     else if (s <= 80) { stage = 'HUNGRY'; stageCls = 'stage-hungry'; identity = 'You understand the truth. Consistency is now the gap.'; action = 'Apply one principle from this topic this week.'; }
     else { stage = 'GROWING'; stageCls = 'stage-growing'; identity = 'You are aligned in this area. The knowledge is showing up in how you live.'; action = 'Move to the next topic or unlock full tracking.'; }
+    // PATCH 3: Stage-based insight
+    const insights = {
+      STUCK: "You understand the words but the foundation is not solid yet. That is the real gap.",
+      AWARE: "You have surface understanding but have not made it your own through application.",
+      HUNGRY: "You understand truth, but you are not applying it consistently. That is the next step.",
+      GROWING: "You are aligned in this area. Now strengthen consistency and move to the next topic."
+    };
+    const insightEl = document.getElementById('testResultStageInsight');
+    if (insightEl) insightEl.textContent = insights[stage] || '';
     document.getElementById('testResultScore').textContent = s;
     const pill = document.getElementById('testResultPill');
     pill.textContent = stage; pill.className = 'gp73-stage-pill ' + stageCls;
@@ -1230,6 +1250,18 @@
     if (!scores[activeTopic]) scores[activeTopic] = [];
     scores[activeTopic].push(testScore);
     localStorage.setItem('gp73_scores', JSON.stringify(scores));
+  }
+
+  // PATCH 3: Improve This Area — close modal, preload chat
+  function improveThisArea() {
+    closeModal('testModal');
+    const prompt = 'Help me apply what I just tested in my life about ' + (activeTopic || 'faith');
+    const input = document.getElementById('q');
+    if (input) {
+      input.value = prompt;
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input.focus();
+    }
   }
 
   // ── MODAL CONTROL ─────────────────────────────────────────────────────────
@@ -1273,6 +1305,8 @@
       <div class="gp73-stage-pill stage-hungry" id="testResultPill"></div>
       <div style="font-size:16px;font-weight:700;margin-bottom:8px" id="testResultIdentity"></div>
       <div style="font-size:14px;color:#888;margin-bottom:24px;line-height:1.6" id="testResultAction"></div>
+      <div id="testResultStageInsight" style="font-size:14px;color:#aaa;margin-bottom:16px;line-height:1.5;font-style:italic"></div>
+      <button onclick="improveThisArea()" style="width:100%;background:transparent;border:1px solid rgba(255,214,0,0.4);color:#FFD600;font-size:14px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px">Improve This Area</button>
       <a href="/dashboard" class="gp73-result-cta">Track My Growth &rarr;</a>
       <button class="gp73-close" onclick="closeModal('testModal')">Close</button>
     </div>
@@ -1284,7 +1318,7 @@
           <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-tier-card" target="_blank">
             <div class="gp73-tier-price">$7<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
             <div class="gp73-tier-name">Discipleship Circle</div>
-            <div class="gp73-tier-desc">Teachings + PDFs + limited tests</div>
+            <div class="gp73-tier-desc">Guided teaching and consistency system &mdash; light interaction, not full system access</div>
           </a>
           <a href="#" class="gp73-tier-card featured" target="_blank">
             <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">RECOMMENDED</span></div>
@@ -1307,13 +1341,14 @@
 <div class="gp73-overlay" id="paywallModal">
   <div class="gp73-modal">
     <div class="gp73-paywall">
-      <h2 id="paywallHeadline">Unlock deeper access.</h2>
+      <p style="font-size:12px;color:#555;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">You've already started seeing where you stand.</p>
+      <h2 id="paywallHeadline">Now track your growth and unlock full access.</h2>
       <p id="paywallBody">Continue your discipleship journey with full system access.</p>
       <div class="gp73-tier-cards">
         <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-tier-card" target="_blank">
           <div class="gp73-tier-price">$7<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
           <div class="gp73-tier-name">Discipleship Circle</div>
-          <div class="gp73-tier-desc">Teachings + PDFs + limited chat &amp; tests</div>
+          <div class="gp73-tier-desc">Guided teaching and consistency system &mdash; light interaction, not full system access</div>
         </a>
         <a href="#" class="gp73-tier-card featured" target="_blank">
           <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">BEST VALUE</span></div>
