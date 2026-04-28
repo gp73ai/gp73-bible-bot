@@ -731,17 +731,17 @@
 
   <!-- DUAL CTA -->
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-    <button class="ask-btn" onclick="ask()" style="flex:1;min-width:160px">Get Clarity &rarr;</button>
-    <button class="ask-btn" onclick="openTestModal('faith')" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
+    <button id="clarityBtn" class="ask-btn" onclick="ask()" style="flex:1;min-width:160px">Get Clarity &rarr;</button>
+    <button id="measureBtn" class="ask-btn" onclick="openTestModal('faith')" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
   </div>
   <div style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;margin-top:2px">Start here if you want to see where you stand</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
     <span style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;align-self:center;margin-right:4px">Topics:</span>
-    <button class="gp73-topic-pill" onclick="openTestModal('faith')">Faith</button>
-    <button class="gp73-topic-pill" onclick="openTestModal('salvation')">Salvation</button>
-    <button class="gp73-topic-pill locked" onclick="showPaywall('test')">&#128274; Kingdom</button>
-    <button class="gp73-topic-pill locked" onclick="showPaywall('test')">&#128274; Identity</button>
-    <button class="gp73-topic-pill locked" onclick="showPaywall('test')">&#128274; Prayer</button>
+    <button class="gp73-topic-pill topic-pill" data-topic="faith" onclick="openTestModal('faith')">Faith</button>
+    <button class="gp73-topic-pill topic-pill" data-topic="salvation" onclick="openTestModal('salvation')">Salvation</button>
+    <button class="gp73-topic-pill topic-pill locked" data-topic="kingdom" onclick="showPaywall('test')">&#128274; Kingdom</button>
+    <button class="gp73-topic-pill topic-pill locked" data-topic="identity" onclick="showPaywall('test')">&#128274; Identity</button>
+    <button class="gp73-topic-pill topic-pill locked" data-topic="prayer" onclick="showPaywall('test')">&#128274; Prayer</button>
   </div>
   <!-- UNLOCK SIGNAL above locked topics -->
   <div style="font-size:12px;color:#555;margin-bottom:6px">&#128274; <span style="color:#aaa">3 more topics available with membership &mdash;</span> <span style="color:#FFD600;text-decoration:underline;cursor:pointer" onclick="showPaywall('test')">unlock them &rarr;</span></div>
@@ -764,8 +764,36 @@
       <div style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600">&#9656;</span> Voice input + output (Premium)</div>
       <div style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600">&#9656;</span> Growth dashboard + topic tracking</div>
     </div>
-    <button onclick="showPaywall('voice')" style="width:100%;background:#FFD600;color:#000;font-weight:900;font-size:15px;padding:13px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.02em">See Membership Options &rarr;</button>
+    <button id="membershipBtn" onclick="showPaywall('voice')" style="width:100%;background:#FFD600;color:#000;font-weight:900;font-size:15px;padding:13px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.02em">See Membership Options &rarr;</button>
     <div style="text-align:center;margin-top:8px"><a href="#" style="font-size:12px;color:#555;text-decoration:underline">Already a member? Sign in</a></div>
+  </div>
+
+  <!-- ─── DASHBOARD PREVIEW (inline) ─── -->
+  <div style="margin-bottom:16px">
+    <div style="font-size:11px;color:#FFD600;text-transform:uppercase;letter-spacing:3px;font-weight:700;margin-bottom:8px">Your Growth</div>
+    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:4px">Track Your Growth</div>
+    <div style="font-size:13px;color:#666;margin-bottom:16px">See your consistency, alignment, and progress over time.</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:16px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#FFD600;border-radius:3px 0 0 3px"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:8px">Streak</div>
+        <div style="font-size:24px;font-weight:800;color:#FFD600;line-height:1;margin-bottom:2px" id="prevStreak">—</div>
+        <div style="font-size:11px;color:#555">days</div>
+      </div>
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:16px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#FFD600;border-radius:3px 0 0 3px"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:8px">Alignment</div>
+        <div style="font-size:24px;font-weight:800;color:#FFD600;line-height:1;margin-bottom:2px" id="prevAlign">—</div>
+        <div style="font-size:11px;color:#555">avg score</div>
+      </div>
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:10px;padding:16px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#FFD600;border-radius:3px 0 0 3px"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:8px">Level</div>
+        <div style="font-size:16px;font-weight:800;color:#FFD600;line-height:1;margin-bottom:2px;text-transform:capitalize" id="prevLevel">—</div>
+        <div style="font-size:11px;color:#555">placement</div>
+      </div>
+    </div>
+    <a href="/dashboard" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:900;font-size:14px;padding:12px;border-radius:8px;text-decoration:none;letter-spacing:.02em">View Your Dashboard →</a>
   </div>
 
   <div id="out">Ask something real.</div>
@@ -946,62 +974,6 @@
   </div>
 
 </div>
-
-<hr class="section-divider" />
-
-<!-- ─── DASHBOARD PREVIEW ─── -->
-<div style="max-width:800px;margin:0 auto;padding:0 32px 60px">
-  <div style="font-size:12px;color:#FFD600;text-transform:uppercase;letter-spacing:3px;font-weight:700;margin-bottom:10px">Your Growth</div>
-  <div style="font-size:32px;font-weight:900;color:#fff;margin-bottom:8px">Track Your Growth</div>
-  <div style="font-size:16px;color:#666;margin-bottom:32px">See your consistency, alignment, and progress over time.</div>
-
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-    <div style="background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:20px;position:relative;overflow:hidden">
-      <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#FFD600;border-radius:3px 0 0 3px"></div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:10px">Day Streak</div>
-      <div style="font-size:28px;font-weight:800;color:#FFD600;line-height:1;margin-bottom:4px" id="prevStreak">—</div>
-      <div style="font-size:13px;color:#555">days active</div>
-    </div>
-    <div style="background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:20px;position:relative;overflow:hidden">
-      <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#FFD600;border-radius:3px 0 0 3px"></div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:10px">Alignment</div>
-      <div style="font-size:28px;font-weight:800;color:#FFD600;line-height:1;margin-bottom:4px" id="prevAlign">—</div>
-      <div style="font-size:13px;color:#555">avg score</div>
-    </div>
-    <div style="background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:20px;position:relative;overflow:hidden">
-      <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:#FFD600;border-radius:3px 0 0 3px"></div>
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:10px">Level</div>
-      <div style="font-size:18px;font-weight:800;color:#FFD600;line-height:1;margin-bottom:4px;text-transform:capitalize" id="prevLevel">—</div>
-      <div style="font-size:13px;color:#555">placement tier</div>
-    </div>
-  </div>
-
-  <a href="/dashboard" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:900;font-size:15px;padding:14px;border-radius:8px;text-decoration:none;letter-spacing:.02em">View Your Dashboard →</a>
-  <div style="text-align:center;margin-top:10px;font-size:12px;color:#555">Your data saves locally and updates after every test and study session.</div>
-</div>
-
-<script>
-(function() {
-  try {
-    var streak = parseInt(localStorage.getItem('gp73_streak') || '0') || 0;
-    var level = localStorage.getItem('gp73_user_level') || '';
-    var scores = JSON.parse(localStorage.getItem('gp73_scores') || '{}');
-    var allScores = Object.values(scores).map(function(arr) {
-      if (!arr || !arr.length) return null;
-      var last = arr[arr.length - 1];
-      return typeof last === 'object' ? last.score : last;
-    }).filter(function(v) { return v != null && !isNaN(v); });
-    var avg = allScores.length ? Math.round(allScores.reduce(function(a,b){return a+b;},0) / allScores.length) : null;
-
-    var sEl = document.getElementById('prevStreak');
-    var aEl = document.getElementById('prevAlign');
-    var lEl = document.getElementById('prevLevel');
-    if (sEl) sEl.textContent = streak;
-    if (aEl) aEl.textContent = avg != null ? avg + '%' : '—';
-    if (lEl) lEl.textContent = level || 'New';
-  } catch(e) {}
-})();
-</script>
 
 <!-- ─── PRODUCT LADDER ─── -->
 <div class="ladder-section">
@@ -1235,6 +1207,8 @@
   }
 
   // ── PAYWALL ───────────────────────────────────────────────────────────────
+  // Alias used by DOMContentLoaded bindings and inline calls
+  function openPaywall(reason) { showPaywall(reason || 'voice'); }
   function showPaywall(reason) {
     let headline, body;
     if (reason === 'daily') {
@@ -1491,6 +1465,55 @@
     const el = document.getElementById(id);
     if (el) el.classList.remove('open');
   }
+  // ── DOM READY BINDINGS ────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // -- Button bindings (belt-and-suspenders alongside inline onclick) --
+    var cb = document.getElementById('clarityBtn');
+    if (cb) cb.onclick = function() { ask(); };
+
+    var mb = document.getElementById('measureBtn');
+    if (mb) mb.onclick = function() { openTestModal('faith'); };
+
+    var memb = document.getElementById('membershipBtn');
+    if (memb) memb.onclick = function() { showPaywall('voice'); };
+
+    document.querySelectorAll('.topic-pill').forEach(function(pill) {
+      pill.onclick = function() {
+        if (pill.classList.contains('locked')) { showPaywall('test'); }
+        else { openTestModal(pill.dataset.topic || 'faith'); }
+      };
+    });
+
+    // -- Dashboard preview: populate from localStorage --
+    try {
+      var streak = parseInt(localStorage.getItem('gp73_streak') || '0') || 0;
+      var level  = localStorage.getItem('gp73_user_level') || '';
+      var scoresRaw = JSON.parse(localStorage.getItem('gp73_scores') || '{}');
+      var vals = Object.values(scoresRaw).map(function(arr) {
+        if (!arr || !arr.length) return null;
+        var last = arr[arr.length - 1];
+        return typeof last === 'object' ? last.score : last;
+      }).filter(function(v) { return v != null && !isNaN(v); });
+      var avg = vals.length ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length) : null;
+
+      var sEl = document.getElementById('prevStreak');
+      var aEl = document.getElementById('prevAlign');
+      var lEl = document.getElementById('prevLevel');
+      if (sEl) sEl.textContent = streak;
+      if (aEl) aEl.textContent = avg != null ? avg + '%' : '—';
+      if (lEl) lEl.textContent = level || 'New';
+    } catch(e) { console.warn('Dashboard preview error:', e); }
+
+    // -- Verify critical functions are available (console guard) --
+    ['ask', 'openTestModal', 'showPaywall', 'openPaywall'].forEach(function(fn) {
+      if (typeof window[fn] !== 'function') {
+        console.error('[GP73] Missing function: ' + fn);
+      }
+    });
+
+  });
+
   // Attach overlay click-to-close AFTER DOM is ready (modals are below this script)
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.gp73-overlay').forEach(overlay => {
