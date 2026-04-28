@@ -1434,6 +1434,12 @@ function updateMemory(sessionId, question, answer, userState, issueSummary, path
   }
 
   // USER STATE UPDATES
+  // Exact transition rules:
+  // if intent === SEEKING → hungerLevel++
+  // if intent === STRUGGLING → stage = STUCK
+  // if intent === CORRECTION → resistanceLevel++
+  // if user says "I tried" but no change detected → stage = STUCK
+  // if user asks deeper follow-up question → stage = HUNGRY
   mem.userState = mem.userState || {
     stage: 'UNDEFINED', topicsEngaged: [], resistanceLevel: 0, hungerLevel: 0, lastActionTaken: false
   };
@@ -1443,46 +1449,67 @@ function updateMemory(sessionId, question, answer, userState, issueSummary, path
     mem.userState.topicsEngaged.push(topic);
   }
 
-  // Resistance level: increment on RESISTANCE path, decay slowly on other paths
-  if (path === 'RESISTANCE') {
+  const lowerQ = question.toLowerCase();
+
+  // SEEKING → hungerLevel++
+  if (toneClass === 'SEEKING') {
+    mem.userState.hungerLevel = Math.min(5, (mem.userState.hungerLevel || 0) + 1);
+  }
+
+  // STRUGGLING → stage = STUCK
+  if (toneClass === 'STRUGGLING') {
+    mem.userState.stage = 'STUCK';
+  }
+
+  // CORRECTION → resistanceLevel++
+  if (toneClass === 'CORRECTION') {
     mem.userState.resistanceLevel = Math.min(5, (mem.userState.resistanceLevel || 0) + 1);
   } else if (mem.userState.resistanceLevel > 0) {
+    // Slow decay when not resisting
     mem.userState.resistanceLevel = Math.max(0, mem.userState.resistanceLevel - 0.5);
   }
 
-  // Hunger level: increment on HUNGER path or SEEKING + growth language
-  if (path === 'HUNGER') {
-    mem.userState.hungerLevel = Math.min(5, (mem.userState.hungerLevel || 0) + 1);
-  } else if (path === 'SEEKING') {
-    mem.userState.hungerLevel = Math.min(5, (mem.userState.hungerLevel || 0) + 0.5);
+  // "I tried" with no change detected → stage = STUCK
+  const saidTried = /i tried|i.ve tried|i.ve been trying|i attempted/.test(lowerQ);
+  const noChange = /nothing|still|same|doesn.t work|not working|no change/.test(lowerQ);
+  if (saidTried && noChange) {
+    mem.userState.stage = 'STUCK';
   }
 
-  // Detect if user confirmed action taken
-  const lowerQ = question.toLowerCase();
-  if (/i did|i tried it|i applied|i actually did|i followed|i started|i went|i prayed|i read/.test(lowerQ)) {
+  // User confirmed action taken → lastActionTaken = true
+  if (/i did|i applied|i actually did|i followed through|i started|i went|i prayed and|i read and/.test(lowerQ)) {
     mem.userState.lastActionTaken = true;
   } else {
     mem.userState.lastActionTaken = false;
   }
 
-  // Update stage based on accumulated signals
-  const r = mem.userState.resistanceLevel;
-  const h = mem.userState.hungerLevel;
-  const topics = mem.userState.topicsEngaged.length;
-  const turns = mem.turnCount;
+  // Deeper follow-up question detected → stage = HUNGRY
+  const deeperSignals = /what does that mean|how does that work|what.s the next|take me deeper|tell me more|how do i apply|what should i do next|go deeper/.test(lowerQ);
+  if (deeperSignals) {
+    mem.userState.stage = 'HUNGRY';
+    mem.userState.hungerLevel = Math.min(5, (mem.userState.hungerLevel || 0) + 1);
+  }
 
-  if (turns === 0 || !topics) {
-    mem.userState.stage = 'UNDEFINED';
-  } else if (r >= 3) {
-    mem.userState.stage = 'RESISTANT';
-  } else if (h >= 3) {
-    mem.userState.stage = 'GROWING';
-  } else if (mem.userState.lastActionTaken) {
-    mem.userState.stage = 'ENGAGED';
-  } else if (topics >= 2) {
-    mem.userState.stage = 'SEEKING';
-  } else {
-    mem.userState.stage = 'AWARE';
+  // Final stage resolution (only override STUCK/HUNGRY if clear signal)
+  if (mem.userState.stage !== 'STUCK' && mem.userState.stage !== 'HUNGRY') {
+    const r = mem.userState.resistanceLevel;
+    const h = mem.userState.hungerLevel;
+    const topics = mem.userState.topicsEngaged.length;
+    const turns = mem.turnCount;
+
+    if (turns === 0 || !topics) {
+      mem.userState.stage = 'UNDEFINED';
+    } else if (r >= 3) {
+      mem.userState.stage = 'RESISTANT';
+    } else if (h >= 3) {
+      mem.userState.stage = 'GROWING';
+    } else if (mem.userState.lastActionTaken) {
+      mem.userState.stage = 'ENGAGED';
+    } else if (topics >= 2) {
+      mem.userState.stage = 'SEEKING';
+    } else {
+      mem.userState.stage = 'AWARE';
+    }
   }
 
   console.log('[GP73 USER STATE]', JSON.stringify(mem.userState));
