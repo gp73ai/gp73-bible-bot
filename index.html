@@ -1385,14 +1385,14 @@
       tierLabel = "You're growing, but not consistent yet";
       tierCls = 'stage-aware';
       message = "You understand key truths, but there are gaps that will limit your growth if not corrected.";
-      ctaHtml = '<button class="gp73-result-cta" onclick="startStripeCheckout('core')" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px">Strengthen Your Understanding &rarr;</button>';
+      ctaHtml = '<button class="gp73-result-cta" onclick="startStripeCheckout(\'core\')" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px">Strengthen Your Understanding &rarr;</button>';
     } else {
       // TIER 3 — ADVANCED (7/7)
       tier = 'advanced';
       tierLabel = "You're not a beginner";
       tierCls = 'stage-growing';
       message = '';
-      ctaHtml = '<button class="gp73-result-cta" onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.')" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px">Step Into the Leadership Track &rarr;</button>';
+      ctaHtml = '<button class="gp73-result-cta" onclick="alert(\'Framework access is being finalized. You\\\'ll be able to enter shortly.\')" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:700;font-size:15px;padding:13px;border-radius:10px;border:none;cursor:pointer;font-family:inherit;margin-bottom:10px">Step Into the Leadership Track &rarr;</button>';
     }
 
     // Save placement to localStorage
@@ -1407,15 +1407,15 @@
 
     let advancedBlock = '';
     if (tier === 'advanced') {
-      advancedBlock = '<div style="background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:16px 18px;margin-bottom:20px">' +
-        '<p style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">You're not struggling with understanding — you're ready to handle it.</p>' +
-        '<p style="font-size:14px;color:#aaa;margin-bottom:8px">Most people are trying to figure things out. You're already answering correctly.</p>' +
-        '<p style="font-size:14px;color:#aaa">The real question is — what are you doing with what you know?</p>' +
-        '</div>' +
-        '<div style="border:1px solid #333;border-radius:10px;padding:16px 18px;margin-bottom:20px">' +
-        '<p style="font-size:14px;font-weight:700;color:#FFD600;margin-bottom:6px">"If you truly understand this, you should be able to teach it."</p>' +
-        '<p style="font-size:13px;color:#666">Most people think they understand until they try to explain it.</p>' +
-        '</div>';
+      advancedBlock = "<div style='background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:16px 18px;margin-bottom:20px'>" +
+        "<p style='font-size:15px;font-weight:700;color:#fff;margin-bottom:6px'>You're not struggling with understanding — you're ready to handle it.</p>" +
+        "<p style='font-size:14px;color:#aaa;margin-bottom:8px'>Most people are trying to figure things out. You're already answering correctly.</p>" +
+        "<p style='font-size:14px;color:#aaa'>The real question is — what are you doing with what you know?</p>" +
+        "</div>" +
+        "<div style='border:1px solid #333;border-radius:10px;padding:16px 18px;margin-bottom:20px'>" +
+        "<p style='font-size:14px;font-weight:700;color:#FFD600;margin-bottom:6px'>“If you truly understand this, you should be able to teach it.”</p>" +
+        "<p style='font-size:13px;color:#666'>Most people think they understand until they try to explain it.</p>" +
+        "</div>";
     }
 
     let messageBlock = message
@@ -1431,7 +1431,7 @@
       ctaHtml +
       '<button onclick="improveThisArea()" style="width:100%;background:transparent;border:1px solid rgba(255,214,0,0.4);color:#FFD600;font-size:14px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;font-family:inherit;margin-bottom:10px">Go Practice This Topic</button>' +
       '<a href="/dashboard" style="display:block;width:100%;text-align:center;background:transparent;border:1px solid #333;color:#888;font-size:13px;font-weight:600;padding:10px;border-radius:8px;text-decoration:none;margin-bottom:8px">Track Your Growth &#8594;</a>' +
-      '<button class="gp73-close" onclick="closeModal('testModal')">Close</button>';
+      '<button class="gp73-close" onclick="closeModal(\'testModal\')">Close</button>';
   }
 
   function saveTestScore() {
