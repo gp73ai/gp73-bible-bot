@@ -686,44 +686,90 @@ function shouldAskFollowUp(userSignal, toneClass, question) {
   return false;
 }
 
+// ============================================================
+// DETERMINISTIC FOLLOW-UP TABLE
+// Topic + path mapped to specific questions.
+// Predictable, specific, no GPT generation needed.
+// ============================================================
+const FOLLOW_UP_TABLE = {
+  SEEKING: {
+    faith:          'What part of faith feels hardest for you to actually live out right now?',
+    identity:       'What do you currently believe about who you are?',
+    sin:            'What do you think is driving that struggle beneath the surface?',
+    kingdom:        'Where do you see God\'s authority showing up in your life right now?',
+    soul:           'What does renewing your mind actually look like for you day to day?',
+    salvation:      'What changed in how you live after you were saved?',
+    prayer:         'What does your prayer actually look like when you sit down to do it?',
+    obedience:      'Where is obedience costing you something right now?',
+    transformation: 'What\'s one area where you can see actual change happening?',
+    doubt:          'What would it take for you to move past the doubt?',
+    suffering:      'What do you think God is building in you through this?',
+    relationships:  'Where is that relationship testing what you actually believe?',
+    'holy spirit':  'What does following the Spirit look like for you practically?',
+    church:         'What would a healthy church relationship actually require from you?',
+    general:        'What specifically are you trying to understand deeper?'
+  },
+  STRUGGLING: {
+    faith:          'What are you actually believing when things don\'t change?',
+    identity:       'Where do your actions contradict what you say you believe about yourself?',
+    sin:            'What keeps pulling you back into that pattern?',
+    kingdom:        'Where are you resisting God\'s direction in your life?',
+    soul:           'What are you feeding your mind with more than the Word right now?',
+    salvation:      'What does your life actually look like compared to when you first got saved?',
+    prayer:         'What are you asking God for that you\'re not willing to align with?',
+    obedience:      'Which instruction have you heard but not followed?',
+    transformation: 'What\'s the one thing you keep avoiding that you know needs to change?',
+    doubt:          'What would actually change if you decided to believe fully?',
+    suffering:      'Are you asking God to remove this or asking Him to build you through it?',
+    relationships:  'What pattern in that relationship mirrors something inside you?',
+    'holy spirit':  'Where are you overriding the Spirit with your own preference?',
+    church:         'What are you expecting from church that you\'re not willing to give?',
+    general:        'What have you already tried that hasn\'t worked?'
+  },
+  RESISTANCE: {
+    faith:          'Are you willing to let your definition of faith be corrected?',
+    identity:       'Are you holding onto something that contradicts who God says you are?',
+    sin:            'Are you willing to call it what it is instead of justifying it?',
+    kingdom:        'Are you willing to submit to God\'s authority or are you redefining it?',
+    soul:           'Are you willing to give up control of how this works?',
+    salvation:      'Are you following God or following a version of God you made up?',
+    prayer:         'Are you praying to change things or to be changed?',
+    obedience:      'Are you obeying what you heard or negotiating with it?',
+    transformation: 'Are you actually committed to change or just to talking about it?',
+    doubt:          'Are you willing to believe even if everything doesn\'t make sense first?',
+    suffering:      'Are you willing to trust God in this even if He doesn\'t remove it?',
+    relationships:  'Are you willing to change, or are you waiting for them to change first?',
+    'holy spirit':  'Are you following the Spirit or asking the Spirit to follow you?',
+    church:         'Are you open to being wrong about what church is supposed to be?',
+    general:        'Are you open to being wrong about this?'
+  },
+  HUNGER: {
+    faith:          'What\'s the next level of faith that you\'re not walking in yet?',
+    identity:       'What would your life look like if you actually lived from your God-given identity?',
+    sin:            'What would it take to close that door completely?',
+    kingdom:        'Where is God calling you to take dominion that you\'ve been avoiding?',
+    soul:           'What would it look like to fully possess your soul?',
+    salvation:      'What has changed in you since you got saved that you haven\'t fully developed?',
+    prayer:         'What would it look like to move from asking to aligning in prayer?',
+    obedience:      'What\'s the next level of obedience God is requiring from you?',
+    transformation: 'What does the next version of you actually look like?',
+    doubt:          'What would total surrender to this truth actually cost you?',
+    suffering:      'What is God producing in you through this that you couldn\'t get another way?',
+    relationships:  'How is God using that relationship to grow you into who He called you to be?',
+    'holy spirit':  'What would it look like to go from knowing about the Spirit to walking fully in Him?',
+    church:         'What would it look like for you to become what the church needs, not just attend it?',
+    general:        'Are you ready to apply this?'
+  }
+};
+
+function getFollowUp(path, topic) {
+  const pathMap = FOLLOW_UP_TABLE[path] || FOLLOW_UP_TABLE.SEEKING;
+  return pathMap[topic] || pathMap.general || null;
+}
+
+// Legacy async wrapper kept for compatibility -- now returns instantly
 async function generateFollowUp(question, answer, teachingContext, pathGuidance = null) {
-  const guidanceNote = pathGuidance
-    ? `\nPath-specific guidance: ${pathGuidance}`
-    : '';
-  const prompt = `A person asked: "${question}"
-
-You gave this answer:
-"${answer}"
-
-Generate ONE follow-up question that:
-- Connects directly to what was just said
-- Moves them deeper into the SAME topic -- not sideways
-- Exposes what they actually believe, not just what they know
-- Feels natural at the end of the response, not scripted
-- Is specific, not generic
-- Is a single sentence
-- Does NOT start with "Have you ever", "Do you think", or "What do you believe" unless nothing else fits${guidanceNote}
-
-Return ONLY the question. No intro. No label. No extra text.`;
-
-  const r = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      temperature: 0.5,
-      max_tokens: 60,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-  const data = await r.json();
-  const followUp = (data.choices?.[0]?.message?.content || '').trim();
-  // Sanity check -- must end with ? and be a single sentence
-  if (!followUp.endsWith('?') || followUp.split('?').length > 2) return null;
-  return followUp;
+  return null; // replaced by deterministic table via getFollowUp()
 }
 
 // ============================================================
@@ -1516,15 +1562,16 @@ export default async function handler(req, res) {
     // Skip if system already returned an investigative question (acknowledgement/unclear_application)
     let finalAnswer = answer;
     if (detectionState === 'standard' && shouldAskFollowUp(userSignal, toneClass, question)) {
-      try {
-        const pathStrategy = getPathStrategy(path);
-        const followUp = await generateFollowUp(question, answer, teachingContext, pathStrategy.followUpGuidance);
-        if (followUp) {
-          finalAnswer = `${answer} ${followUp}`;
-          console.log('[GP73 FOLLOW-UP]', followUp);
-        }
-      } catch (e) {
-        console.warn('[GP73 FOLLOW-UP] Generation failed, skipping:', e.message);
+      const topic = extractTopic(question);
+      // Map toneClass to follow-up table key
+      const followUpPath = path === 'RESISTANCE' ? 'RESISTANCE'
+        : path === 'HUNGER' ? 'HUNGER'
+        : toneClass === 'STRUGGLING' ? 'STRUGGLING'
+        : 'SEEKING';
+      const followUp = getFollowUp(followUpPath, topic);
+      if (followUp) {
+        finalAnswer = `${answer} ${followUp}`;
+        console.log('[GP73 FOLLOW-UP]', followUp);
       }
     }
 
