@@ -280,6 +280,62 @@
 
   .ask-btn:hover { background: #ffe033; }
   .ask-btn:active { transform: scale(0.99); }
+  .gp73-topic-pill { background: #111; border: 1px solid rgba(255,214,0,0.3); color: #FFD600; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 100px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+  .gp73-topic-pill:hover { background: rgba(255,214,0,0.1); }
+  .gp73-topic-pill.locked { color: #444; border-color: #222; cursor: pointer; }
+  /* MODAL */
+  .gp73-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .gp73-overlay.open { opacity: 1; pointer-events: all; }
+  .gp73-modal { background: #111; border: 1px solid #222; border-radius: 16px; padding: 32px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .gp73-modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .gp73-modal-sub { font-size: 14px; color: #666; margin-bottom: 22px; }
+  .gp73-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .gp73-sel-pill { padding: 8px 14px; border-radius: 100px; border: 1px solid #222; background: #0f0f0f; font-size: 13px; color: #ccc; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+  .gp73-sel-pill:not(.locked):hover { border-color: #FFD600; color: #FFD600; }
+  .gp73-sel-pill.selected { background: rgba(255,214,0,0.1); border-color: #FFD600; color: #FFD600; font-weight: 700; }
+  .gp73-sel-pill.locked { opacity: 0.4; }
+  .gp73-unlock-nudge { display: none; background: #0f0f00; border: 1px solid rgba(255,214,0,0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #aaa; align-items: center; justify-content: space-between; gap: 10px; }
+  .gp73-unlock-nudge.show { display: flex; }
+  .gp73-unlock-nudge a { background: #FFD600; color: #000; font-weight: 700; font-size: 12px; padding: 5px 12px; border-radius: 6px; text-decoration: none; white-space: nowrap; }
+  .gp73-quiz-steps { display: flex; gap: 5px; margin-bottom: 18px; }
+  .gp73-step { flex: 1; height: 3px; border-radius: 3px; background: #1a1a1a; transition: background 0.3s; }
+  .gp73-step.done { background: #FFD600; }
+  .gp73-step.cur { background: rgba(255,214,0,0.4); }
+  .gp73-q p { font-size: 15px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+  .gp73-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .gp73-opt { background: #0f0f0f; border: 1px solid #222; border-radius: 8px; padding: 11px 14px; font-size: 14px; color: #ccc; cursor: pointer; text-align: left; font-family: inherit; transition: all 0.2s; }
+  .gp73-opt:hover { border-color: #FFD600; color: #fff; }
+  .gp73-opt.ok { border-color: #50c878 !important; background: rgba(80,200,120,0.08) !important; color: #50c878 !important; pointer-events: none; }
+  .gp73-opt.bad { border-color: #ff6060 !important; background: rgba(255,80,80,0.08) !important; color: #ff6060 !important; pointer-events: none; }
+  .gp73-fb { font-size: 12px; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; display: none; }
+  .gp73-fb.ok { background: rgba(80,200,120,0.1); color: #50c878; display: block; }
+  .gp73-fb.bad { background: rgba(255,80,80,0.1); color: #ff6060; display: block; }
+  .gp73-submit { width: 100%; background: #FFD600; color: #000; font-weight: 700; font-size: 15px; padding: 13px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .gp73-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+  .gp73-result-score { font-size: 52px; font-weight: 900; color: #FFD600; line-height: 1; margin-bottom: 4px; }
+  .gp73-stage-pill { display: inline-block; padding: 4px 14px; border-radius: 100px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+  .gp73-result-cta { display: block; width: 100%; text-align: center; background: #FFD600; color: #000; font-weight: 700; font-size: 15px; padding: 13px; border-radius: 10px; text-decoration: none; margin-bottom: 10px; }
+  .gp73-close { width: 100%; background: transparent; border: 1px solid #333; color: #888; font-size: 14px; padding: 10px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  /* PAYWALL */
+  .gp73-paywall { text-align: center; padding: 8px 0; }
+  .gp73-paywall h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .gp73-paywall p { font-size: 14px; color: #888; margin-bottom: 24px; line-height: 1.6; }
+  .gp73-tier-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+  .gp73-tier-card { background: #0f0f0f; border: 1px solid #222; border-radius: 12px; padding: 18px 20px; text-align: left; text-decoration: none; display: block; transition: border-color 0.2s; }
+  .gp73-tier-card:hover { border-color: #FFD600; }
+  .gp73-tier-card.featured { border-color: rgba(255,214,0,0.4); background: rgba(255,214,0,0.04); }
+  .gp73-tier-price { font-size: 22px; font-weight: 900; color: #FFD600; }
+  .gp73-tier-name { font-size: 14px; font-weight: 700; color: #f4f4f4; margin-bottom: 4px; }
+  .gp73-tier-desc { font-size: 12px; color: #666; }
+  .gp73-tier-badge { font-size: 10px; font-weight: 700; background: #FFD600; color: #000; padding: 2px 8px; border-radius: 100px; margin-left: 8px; letter-spacing: .04em; }
+  /* VOICE */
+  #voiceBtn.recording { border-color: #ff6060; color: #ff6060; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  /* STUDY SESSION BANNER */
+  .study-done-banner { background: #0f0f00; border: 1px solid rgba(255,214,0,0.2); border-radius: 12px; padding: 20px 24px; text-align: center; margin-top: 12px; display: none; }
+  .study-done-banner.show { display: block; }
+  .study-done-banner h3 { font-size: 16px; font-weight: 800; color: #FFD600; margin-bottom: 6px; }
+  .study-done-banner p { font-size: 13px; color: #888; }
 
   /* ─── OUTPUT ─── */
   #out {
@@ -671,9 +727,35 @@
   </div>
 
   <textarea id="q" placeholder="Ask something real… (ex: Why does God allow suffering?)"></textarea>
-  <button class="ask-btn" onclick="ask()">Get Clarity →</button>
+
+  <!-- DUAL CTA -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="ask-btn" onclick="ask()" style="flex:1;min-width:160px">Get Clarity &rarr;</button>
+    <button class="ask-btn" onclick="openTestModal()" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+    <span style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;align-self:center;margin-right:4px">Topics:</span>
+    <button class="gp73-topic-pill" onclick="openTestModal('faith')">Faith</button>
+    <button class="gp73-topic-pill" onclick="openTestModal('salvation')">Salvation</button>
+    <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Kingdom</button>
+    <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Identity</button>
+    <button class="gp73-topic-pill locked" onclick="showTopicLock(this)">&#128274; Prayer</button>
+  </div>
+  <div id="topicLockNudge" style="display:none;background:#0f0f00;border:1px solid rgba(255,214,0,0.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#aaa;margin-bottom:8px;display:none;align-items:center;justify-content:space-between;gap:10px">
+    <span>This topic unlocks with Core access.</span>
+    <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" style="background:#FFD600;color:#000;font-weight:700;font-size:12px;padding:5px 12px;border-radius:6px;text-decoration:none;white-space:nowrap">Unlock &rarr;</a>
+  </div>
+
+  <!-- USAGE METER -->
+  <div id="usageMeter" style="font-size:11px;color:#444;text-align:right;margin-bottom:4px"></div>
+  <!-- VOICE BUTTON (premium) -->
+  <button id="voiceBtn" onclick="handleVoice()" style="background:transparent;border:1px solid #333;color:#555;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;width:100%;margin-bottom:4px" title="Voice input — Premium only">&#127908; Voice Input (Premium)</button>
 
   <div id="out">Ask something real.</div>
+  <div class="study-done-banner" id="studyDoneBanner">
+    <h3>Study session complete.</h3>
+    <p>You've completed your study session for now. Take time to reflect and review what you've learned. Come back later to continue growing.</p>
+  </div>
 
   <!-- POST-ANSWER CONVERSION CARDS (injected after response) -->
   <div id="conversion-cards">
@@ -847,48 +929,415 @@
     return id;
   })();
 
+  // ── SESSION + TIER STATE ─────────────────────────────────────────────────
+  const sessionId = sessionStorage.getItem('gp73_session') || (() => {
+    const id = 'sess_' + Math.random().toString(36).slice(2, 11);
+    sessionStorage.setItem('gp73_session', id);
+    return id;
+  })();
+  const gp73Tier = localStorage.getItem('gp73_tier') || 'free';
+  let chatCount = parseInt(localStorage.getItem('gp73_chat_count') || '0');
+  const chatDate = localStorage.getItem('gp73_chat_date') || '';
+  const today = new Date().toISOString().slice(0, 10);
+  if (chatDate !== today) { chatCount = 0; localStorage.setItem('gp73_chat_date', today); localStorage.setItem('gp73_chat_count', '0'); }
+  const DAILY_LIMITS = { free: 5, circle: 15, core: 40, premium: 100 };
+  const dailyLimit = DAILY_LIMITS[gp73Tier] || 5;
+
+  function updateUsageMeter() {
+    const el = document.getElementById('usageMeter');
+    if (!el) return;
+    const rem = Math.max(0, dailyLimit - chatCount);
+    el.textContent = rem > 0 ? rem + ' messages remaining today' : 'Daily limit reached';
+    el.style.color = rem <= 1 ? '#ff6060' : '#444';
+  }
+  updateUsageMeter();
+
+  // ── TOPIC LOCK NUDGE ──────────────────────────────────────────────────────
+  function showTopicLock(el) {
+    const n = document.getElementById('topicLockNudge');
+    n.style.display = 'flex';
+    setTimeout(() => { n.style.display = 'none'; }, 4000);
+  }
+
+  // ── CHAT ──────────────────────────────────────────────────────────────────
   function fillAndAsk(question) {
     const input = document.getElementById('q');
     input.value = question;
     input.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
- let isLoading = false;
+  let isLoading = false;
 
- async function ask() {
-   if (isLoading) return;
-   const q = document.getElementById('q').value.trim();
-   if (!q) return;
+  async function ask() {
+    if (isLoading) return;
+    const q = document.getElementById('q').value.trim();
+    if (!q) return;
 
-   isLoading = true;
-   const out = document.getElementById('out');
-   const cards = document.getElementById('conversion-cards');
+    // Client-side limit check before API call
+    if (chatCount >= dailyLimit) {
+      showPaywall('daily');
+      return;
+    }
 
-   out.textContent = 'Thinking...';
-   cards.classList.remove('visible');
+    isLoading = true;
+    const out = document.getElementById('out');
+    const cards = document.getElementById('conversion-cards');
+    out.textContent = 'Thinking...';
+    cards.classList.remove('visible');
 
-   try {
-     const res = await fetch('/api/ask', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({ question: q, sessionId: sessionId })
-     });
+    try {
+      const res = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: q, sessionId, tier: gp73Tier })
+      });
+      const data = await res.json();
 
-     const data = await res.json();
-     out.textContent = data.answer || data.response || JSON.stringify(data, null, 2);
+      if (res.status === 429) {
+        if (data.limitType === 'study_session') {
+          out.textContent = '';
+          document.getElementById('studyDoneBanner').classList.add('show');
+        } else {
+          showPaywall('daily');
+        }
+        return;
+      }
 
-     setTimeout(() => {
-       cards.classList.add('visible');
-       cards.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-     }, 600);
+      // Increment local count
+      chatCount++;
+      localStorage.setItem('gp73_chat_count', chatCount);
+      updateUsageMeter();
 
-   } catch (err) {
-     out.textContent = 'Something went wrong. Try again.';
-   } finally {
-     isLoading = false;
-   }
- }
+      // Save userState to localStorage for dashboard
+      if (data.userState) localStorage.setItem('gp73_user_state', JSON.stringify(data.userState));
+
+      out.textContent = data.answer || data.response || JSON.stringify(data, null, 2);
+
+      // Show test nudge after answer if topic detected
+      const topic = detectTopicFromText(q);
+      if (topic) {
+        const nudge = document.createElement('div');
+        nudge.style.cssText = 'margin-top:10px;font-size:12px;color:#555;cursor:pointer';
+        nudge.innerHTML = '&#9656; <span style="color:#FFD600;text-decoration:underline" onclick="openTestModal(\'' + topic + '\')">' + 'Test your understanding of ' + topic + '</span>';
+        out.appendChild(nudge);
+      }
+
+      setTimeout(() => {
+        cards.classList.add('visible');
+        cards.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 600);
+
+      // Warn at 1 remaining
+      if (data.remaining === 1) {
+        setTimeout(() => {
+          const warn = document.createElement('div');
+          warn.style.cssText = 'margin-top:8px;font-size:12px;color:#888;text-align:center';
+          warn.textContent = 'Last message for today. Upgrade to continue.';
+          out.appendChild(warn);
+        }, 800);
+      }
+
+    } catch (err) {
+      out.textContent = 'Something went wrong. Try again.';
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function detectTopicFromText(text) {
+    const t = text.toLowerCase();
+    if (/faith|believe|belief/.test(t)) return 'faith';
+    if (/sin|tempt|flesh/.test(t)) return 'sin';
+    if (/soul|mind|renew/.test(t)) return 'soul';
+    if (/pray|prayer/.test(t)) return 'prayer';
+    if (/kingdom|god.s will/.test(t)) return 'kingdom';
+    if (/identity|who am i|purpose/.test(t)) return 'identity';
+    if (/saved|salvation|repent/.test(t)) return 'salvation';
+    return null;
+  }
+
+  // ── VOICE ─────────────────────────────────────────────────────────────────
+  function handleVoice() {
+    if (gp73Tier !== 'premium') {
+      showPaywall('voice');
+      return;
+    }
+    // Premium: real voice implementation (future)
+    alert('Voice input is enabled for Premium users.');
+  }
+
+  // ── PAYWALL ───────────────────────────────────────────────────────────────
+  function showPaywall(reason) {
+    let headline, body;
+    if (reason === 'daily') {
+      headline = "You've reached today's limit.";
+      body = 'Unlock more daily messages and full topic access to keep growing.';
+    } else if (reason === 'test') {
+      headline = "You've started measuring your understanding.";
+      body = 'Unlock full test access, all topics, and growth tracking to go deeper.';
+    } else if (reason === 'voice') {
+      headline = 'Voice is a Premium feature.';
+      body = 'Upgrade to Premium to use voice input and output.';
+    } else {
+      headline = 'Unlock deeper access.';
+      body = 'Continue your discipleship journey with full system access.';
+    }
+    document.getElementById('paywallHeadline').textContent = headline;
+    document.getElementById('paywallBody').textContent = body;
+    openModal('paywallModal');
+  }
+
+  // ── TEST MODAL ────────────────────────────────────────────────────────────
+  const TEST_DATA = {
+    faith: { title: 'Faith Foundations', questions: [
+      { q: 'What is faith based on?', opts: ['A feeling of confidence', 'The Word of God', 'How often you pray', 'Your past experiences'], c: 1, fix: 'Faith comes from the Word of God, not feelings.' },
+      { q: 'What does renewing your mind require?', opts: ['Positive thinking', 'Consistent exposure to the Word and new patterns', 'Attending church more', 'Prayer alone'], c: 1, fix: 'Renewal requires the Word actively reshaping your thinking.' },
+      { q: 'What happens when faith is disconnected from the Word?', opts: ['It still works if sincere', 'God fills the gap', 'It produces nothing', 'It weakens slowly'], c: 2, fix: 'Faith without the Word has no source and produces nothing.' },
+      { q: 'What is the correct order of faith?', opts: ['See it then believe', 'Feel it then confess', 'Believe it then see it', 'Ask then receive'], c: 2, fix: 'You believe before you see. That is how faith operates.' },
+      { q: 'Faith operates like:', opts: ['A wish', 'A feeling', 'A law', 'A request'], c: 2, fix: 'Faith has laws, boundaries, and structure. It is not random.' }
+    ]},
+    salvation: { title: 'Salvation Foundations', questions: [
+      { q: 'What is salvation?', opts: ['Feeling better about yourself', 'A religious title', 'Transformation that starts with a new spirit', 'Church membership'], c: 2, fix: 'Salvation is the beginning of transformation, not a religious label.' },
+      { q: 'What changes immediately at salvation?', opts: ['Your soul and habits', 'Your spirit and heart', 'Your personality', 'Your desires'], c: 1, fix: 'Your spirit changes instantly. The soul must be renewed over time.' },
+      { q: 'What must follow salvation to produce real change?', opts: ['More church attendance', 'Renewing the mind through the Word', 'Finding a mentor', 'Praying more'], c: 1, fix: 'Salvation starts the process. Renewing the mind continues it.' },
+      { q: 'Why do saved people still struggle?', opts: ['They were not truly saved', 'The soul still has old patterns', 'God is testing them', 'Salvation was incomplete'], c: 1, fix: 'The soul carries old patterns until it is intentionally renewed.' },
+      { q: 'Salvation is:', opts: ['The finish line', 'A feeling', 'The starting line of transformation', 'A title you earn'], c: 2, fix: 'Salvation is the beginning. Transformation is what comes after.' }
+    ]}
+  };
+
+  const FREE_TEST_LIMIT = 1;
+  let testsTaken = parseInt(localStorage.getItem('gp73_tests_taken') || '0');
+  let activeTopic = null;
+  let currentQ = 0;
+  let testScore = 0;
+
+  function openTestModal(preselect) {
+    resetTestModal();
+    openModal('testModal');
+    if (preselect && TEST_DATA[preselect]) {
+      const pills = document.querySelectorAll('.gp73-sel-pill:not(.locked)');
+      pills.forEach(p => { if (p.dataset.topic === preselect) selectTestTopic(preselect, p); });
+    }
+  }
+
+  function resetTestModal() {
+    activeTopic = null; currentQ = 0; testScore = 0;
+    showScreen('screenSelect');
+    hideScreen('screenQuiz');
+    hideScreen('screenResult');
+    hideScreen('screenPaywall');
+    document.querySelectorAll('.gp73-sel-pill').forEach(p => p.classList.remove('selected'));
+    document.getElementById('testUnlockNudge').classList.remove('show');
+    document.getElementById('testStartBtn').disabled = true;
+  }
+  function showScreen(id) { document.getElementById(id).style.display = 'block'; }
+  function hideScreen(id) { document.getElementById(id).style.display = 'none'; }
+
+  function selectTestTopic(topic, el) {
+    document.querySelectorAll('.gp73-sel-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    activeTopic = topic;
+    document.getElementById('testUnlockNudge').classList.remove('show');
+    document.getElementById('testStartBtn').disabled = false;
+  }
+  function showTestUnlock(el) {
+    document.querySelectorAll('.gp73-sel-pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('testUnlockNudge').classList.add('show');
+    document.getElementById('testStartBtn').disabled = true;
+  }
+
+  function startQuiz() {
+    if (!activeTopic) return;
+    // Check if paywall should show (after FREE_TEST_LIMIT full tests)
+    if (testsTaken >= FREE_TEST_LIMIT && gp73Tier === 'free') {
+      showScreen('screenPaywall'); hideScreen('screenSelect');
+      return;
+    }
+    hideScreen('screenSelect'); showScreen('screenQuiz');
+    const d = TEST_DATA[activeTopic];
+    document.getElementById('testTopicLabel').textContent = activeTopic.charAt(0).toUpperCase() + activeTopic.slice(1) + ' Track';
+    document.getElementById('testTitle').textContent = d.title + ' Test';
+    const steps = document.getElementById('testSteps');
+    steps.innerHTML = d.questions.map((_, i) => '<div class="gp73-step" id="ts' + i + '"></div>').join('');
+    renderTestQ();
+  }
+
+  function renderTestQ() {
+    const d = TEST_DATA[activeTopic];
+    const q = d.questions[currentQ];
+    // Determine if partial test (second test, free user)
+    const isPartial = testsTaken >= 1 && gp73Tier === 'free';
+    const maxQ = isPartial ? 3 : 5;
+    document.getElementById('testProgress').textContent = 'Question ' + (currentQ + 1) + ' of ' + maxQ;
+    d.questions.forEach((_, i) => {
+      const el = document.getElementById('ts' + i);
+      if (!el) return;
+      el.className = 'gp73-step' + (i < currentQ ? ' done' : i === currentQ ? ' cur' : '');
+    });
+    document.getElementById('testQuizBody').innerHTML =
+      '<div class="gp73-q"><p>' + q.q + '</p>' +
+      '<div class="gp73-opts">' + q.opts.map((o, i) => '<button class="gp73-opt" onclick="answerTestQ(' + i + ',this)">' + o + '</button>').join('') + '</div>' +
+      '<div class="gp73-fb" id="tfb"></div></div>';
+  }
+
+  function answerTestQ(idx, el) {
+    const d = TEST_DATA[activeTopic];
+    const q = d.questions[currentQ];
+    const isPartial = testsTaken >= 1 && gp73Tier === 'free';
+    const maxQ = isPartial ? 3 : 5;
+    document.querySelectorAll('.gp73-opt').forEach(o => o.setAttribute('onclick', ''));
+    const fb = document.getElementById('tfb');
+    if (idx === q.c) {
+      el.classList.add('ok');
+      fb.textContent = '\u2713 Correct.'; fb.className = 'gp73-fb ok';
+      testScore += isPartial ? Math.round(100 / maxQ) : 20;
+    } else {
+      el.classList.add('bad');
+      document.querySelectorAll('.gp73-opt')[q.c].classList.add('ok');
+      fb.textContent = '\u2717 ' + q.fix; fb.className = 'gp73-fb bad';
+    }
+    setTimeout(() => {
+      currentQ++;
+      if (currentQ < maxQ) { renderTestQ(); }
+      else {
+        testsTaken++;
+        localStorage.setItem('gp73_tests_taken', testsTaken);
+        saveTestScore();
+        if (isPartial) { showScreen('screenPaywall'); hideScreen('screenQuiz'); }
+        else { showTestResult(); }
+      }
+    }, 1400);
+  }
+
+  function showTestResult() {
+    hideScreen('screenQuiz'); showScreen('screenResult');
+    let stage, stageCls, identity, action;
+    const s = testScore;
+    if (s <= 40) { stage = 'STUCK'; stageCls = 'stage-stuck'; identity = 'You have foundational gaps that need to be addressed.'; action = 'Go back through the core teaching on this topic before testing again.'; }
+    else if (s <= 60) { stage = 'AWARE'; stageCls = 'stage-aware'; identity = 'You have surface understanding but are not yet grounded in the depth of this truth.'; action = 'Review what you got wrong and engage with this topic 3 more days.'; }
+    else if (s <= 80) { stage = 'HUNGRY'; stageCls = 'stage-hungry'; identity = 'You understand the truth. Consistency is now the gap.'; action = 'Apply one principle from this topic this week.'; }
+    else { stage = 'GROWING'; stageCls = 'stage-growing'; identity = 'You are aligned in this area. The knowledge is showing up in how you live.'; action = 'Move to the next topic or unlock full tracking.'; }
+    document.getElementById('testResultScore').textContent = s;
+    const pill = document.getElementById('testResultPill');
+    pill.textContent = stage; pill.className = 'gp73-stage-pill ' + stageCls;
+    document.getElementById('testResultIdentity').textContent = identity;
+    document.getElementById('testResultAction').textContent = action;
+  }
+
+  function saveTestScore() {
+    const scores = JSON.parse(localStorage.getItem('gp73_scores') || '{}');
+    if (!scores[activeTopic]) scores[activeTopic] = [];
+    scores[activeTopic].push(testScore);
+    localStorage.setItem('gp73_scores', JSON.stringify(scores));
+  }
+
+  // ── MODAL CONTROL ─────────────────────────────────────────────────────────
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.gp73-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  });
 </script>
+
+<!-- TEST MODAL -->
+<div class="gp73-overlay" id="testModal">
+  <div class="gp73-modal">
+    <div id="screenSelect">
+      <h2>Measure Your Understanding</h2>
+      <p class="gp73-modal-sub">Choose a topic. 5 questions. Immediate feedback per answer.</p>
+      <div class="gp73-pills">
+        <button class="gp73-sel-pill" data-topic="faith" onclick="selectTestTopic('faith',this)">&#128218; Faith</button>
+        <button class="gp73-sel-pill" data-topic="salvation" onclick="selectTestTopic('salvation',this)">&#9989; Salvation</button>
+        <button class="gp73-sel-pill locked" onclick="showTestUnlock(this)">&#128274; Kingdom</button>
+        <button class="gp73-sel-pill locked" onclick="showTestUnlock(this)">&#128274; Identity</button>
+        <button class="gp73-sel-pill locked" onclick="showTestUnlock(this)">&#128274; Prayer</button>
+        <button class="gp73-sel-pill locked" onclick="showTestUnlock(this)">&#128274; Transformation</button>
+      </div>
+      <div class="gp73-unlock-nudge" id="testUnlockNudge">
+        <span>Unlocks with Core access &mdash; $19/month</span>
+        <a href="#" onclick="showPaywall('test');return false">Unlock &rarr;</a>
+      </div>
+      <button class="gp73-submit" id="testStartBtn" onclick="startQuiz()" disabled>Start Test &rarr;</button>
+    </div>
+    <div id="screenQuiz" style="display:none">
+      <div id="testTopicLabel" style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#FFD600;margin-bottom:6px"></div>
+      <h2 id="testTitle" style="margin-bottom:4px"></h2>
+      <p class="gp73-modal-sub" id="testProgress"></p>
+      <div class="gp73-quiz-steps" id="testSteps"></div>
+      <div id="testQuizBody"></div>
+    </div>
+    <div id="screenResult" style="display:none">
+      <div class="gp73-result-score" id="testResultScore">0</div>
+      <div style="font-size:14px;color:#666;margin-bottom:12px">/ 100</div>
+      <div class="gp73-stage-pill stage-hungry" id="testResultPill"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px" id="testResultIdentity"></div>
+      <div style="font-size:14px;color:#888;margin-bottom:24px;line-height:1.6" id="testResultAction"></div>
+      <a href="/dashboard" class="gp73-result-cta">Track My Growth &rarr;</a>
+      <button class="gp73-close" onclick="closeModal('testModal')">Close</button>
+    </div>
+    <div id="screenPaywall" style="display:none">
+      <div class="gp73-paywall">
+        <h2>You've started measuring your understanding.</h2>
+        <p>Unlock full test access, all topics, growth tracking, and your discipleship dashboard to go deeper.</p>
+        <div class="gp73-tier-cards">
+          <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-tier-card" target="_blank">
+            <div class="gp73-tier-price">$7<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
+            <div class="gp73-tier-name">Discipleship Circle</div>
+            <div class="gp73-tier-desc">Teachings + PDFs + limited tests</div>
+          </a>
+          <a href="#" class="gp73-tier-card featured" target="_blank">
+            <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">RECOMMENDED</span></div>
+            <div class="gp73-tier-name">Core System</div>
+            <div class="gp73-tier-desc">Full tests + dashboard + all topics + growth tracking</div>
+          </a>
+          <a href="#" class="gp73-tier-card" target="_blank">
+            <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge" style="background:#888;color:#000">INTRO</span></div>
+            <div class="gp73-tier-name">Premium (14-day intro)</div>
+            <div class="gp73-tier-desc">Everything in Core + voice &mdash; then $39/mo</div>
+          </a>
+        </div>
+        <button class="gp73-close" onclick="closeModal('testModal')">Maybe later</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYWALL MODAL -->
+<div class="gp73-overlay" id="paywallModal">
+  <div class="gp73-modal">
+    <div class="gp73-paywall">
+      <h2 id="paywallHeadline">Unlock deeper access.</h2>
+      <p id="paywallBody">Continue your discipleship journey with full system access.</p>
+      <div class="gp73-tier-cards">
+        <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-tier-card" target="_blank">
+          <div class="gp73-tier-price">$7<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
+          <div class="gp73-tier-name">Discipleship Circle</div>
+          <div class="gp73-tier-desc">Teachings + PDFs + limited chat &amp; tests</div>
+        </a>
+        <a href="#" class="gp73-tier-card featured" target="_blank">
+          <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">BEST VALUE</span></div>
+          <div class="gp73-tier-name">Core System</div>
+          <div class="gp73-tier-desc">Full chat + all tests + dashboard + topic progression</div>
+        </a>
+        <a href="#" class="gp73-tier-card" target="_blank">
+          <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> &rarr; $39 <span class="gp73-tier-badge" style="background:#888;color:#000">INTRO</span></div>
+          <div class="gp73-tier-name">Premium</div>
+          <div class="gp73-tier-desc">Everything + voice input/output + priority access</div>
+        </a>
+      </div>
+      <button class="gp73-close" onclick="closeModal('paywallModal')">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<!-- STUDY SESSION BANNER (inside chat area) -->
+<template id="studyBannerTpl">
+  <div class="study-done-banner show" id="studyDoneBanner">
+    <h3>Study session complete.</h3>
+    <p>You've completed your study session for now. Take time to reflect and review what you've learned. Come back later to continue growing.</p>
+  </div>
+</template>
 
 </body>
 </html>

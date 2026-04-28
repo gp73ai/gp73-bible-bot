@@ -1582,6 +1582,42 @@ function buildConversationContext(mem, currentQuestion) {
 }
 
 // ============================================================
+// SERVER-SIDE RATE LIMITER
+// Tracks chat usage per sessionId + calendar date.
+// Enforced BEFORE any GPT call to protect cost.
+// Limits:
+//   free    = 5/day
+//   circle  = 15/day
+//   core    = 40/day
+//   premium = 100/day
+// Study session soft-lock at 20 interactions (any tier).
+// ============================================================
+const usageMap = new Map(); // sessionId -> { date, count, studyCount }
+
+const TIER_LIMITS = {
+  free: 5,
+  circle: 15,
+  core: 40,
+  premium: 100,
+};
+const STUDY_SESSION_LIMIT = 20;
+
+function checkUsage(sessionId, tier) {
+  const today = new Date().toISOString().slice(0, 10);
+  const entry = usageMap.get(sessionId) || { date: today, count: 0, studyCount: 0 };
+  if (entry.date !== today) { entry.date = today; entry.count = 0; } // reset daily
+  const limit = TIER_LIMITS[tier] || TIER_LIMITS.free;
+  const overDaily = entry.count >= limit;
+  const overStudy = entry.studyCount >= STUDY_SESSION_LIMIT;
+  return { entry, limit, overDaily, overStudy };
+}
+
+function incrementUsage(sessionId) {
+  const entry = usageMap.get(sessionId);
+  if (entry) { entry.count++; entry.studyCount++; usageMap.set(sessionId, entry); }
+}
+
+// ============================================================
 // MAIN HANDLER
 // ============================================================
 export default async function handler(req, res) {
@@ -1590,10 +1626,38 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { question = '', sessionId = 'default' } = req.body || {};
+    const { question = '', sessionId = 'default', tier = 'free' } = req.body || {};
     if (!question.trim()) {
       return res.status(400).json({ error: 'Missing question' });
     }
+
+    // RATE LIMIT CHECK — before any processing
+    const { entry, limit, overDaily, overStudy } = checkUsage(sessionId, tier);
+    usageMap.set(sessionId, entry); // ensure entry exists
+
+    if (overStudy) {
+      return res.status(429).json({
+        source: 'gp73-limit',
+        limitType: 'study_session',
+        answer: null,
+        message: "You've completed your study session for now. Take time to reflect and review what you've learned. Come back later to continue growing."
+      });
+    }
+
+    if (overDaily) {
+      return res.status(429).json({
+        source: 'gp73-limit',
+        limitType: 'daily',
+        answer: null,
+        remaining: 0,
+        limit,
+        message: `You've reached your ${tier === 'free' ? 'free ' : ''}daily limit of ${limit} messages. Unlock more access to keep going.`
+      });
+    }
+
+    // Count this request
+    incrementUsage(sessionId);
+    const remaining = limit - (entry.count + 1);
 
     // Load short-term memory for this session
     const sessionMem = getMemory(sessionId);
@@ -1686,11 +1750,15 @@ export default async function handler(req, res) {
     }
 
     const currentUserState = getMemory(sessionId).userState;
+    const currentEntry = usageMap.get(sessionId);
+    const currentRemaining = Math.max(0, (TIER_LIMITS[tier] || 5) - (currentEntry ? currentEntry.count : 1));
     console.log('[GP73 FINAL]', finalAnswer);
     return res.status(200).json({
       source: 'gp73-brain',
       answer: finalAnswer,
-      userState: currentUserState  // frontend can use this for progress tracking
+      userState: currentUserState,
+      remaining: currentRemaining,
+      studyCount: currentEntry ? currentEntry.studyCount : 1
     });
 
   } catch (error) {

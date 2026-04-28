@@ -568,18 +568,66 @@ function toggleFocusMode() {
   }
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
+// ── INIT + REAL DATA FROM LOCALSTORAGE ───────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Test scores
   Object.entries(scores).forEach(([topic, arr]) => {
     if (arr && arr.length) updateBadge(topic, arr[arr.length - 1]);
   });
   updateTestedCount();
+
+  // Alignment score = average of latest score per topic
+  const allScores = Object.values(scores).map(arr => arr[arr.length - 1]).filter(Boolean);
+  if (allScores.length) {
+    const avg = Math.round(allScores.reduce((a,b)=>a+b,0) / allScores.length);
+    const el = document.getElementById('alignScore');
+    if (el) el.textContent = avg + '%';
+  }
+
+  // Streak
+  const lastVisit = localStorage.getItem('gp73_last_visit') || '';
+  const today = new Date().toISOString().slice(0,10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  let streak = parseInt(localStorage.getItem('gp73_streak') || '0');
+  if (lastVisit === yesterday) streak++;
+  else if (lastVisit !== today) streak = 1;
+  localStorage.setItem('gp73_streak', streak);
+  localStorage.setItem('gp73_last_visit', today);
+  const streakEl = document.querySelector('.stat-value');
+  if (streakEl) streakEl.textContent = streak;
+
+  // Current focus
   if (focusTopic) {
     const btn = document.getElementById('focusModeBtn');
     const lbl = document.getElementById('focusModeLabel');
+    const titleEl = document.getElementById('focusTitle');
     btn.classList.add('active');
     btn.textContent = '\uD83C\uDFAF Focused: ' + focusTopic.charAt(0).toUpperCase() + focusTopic.slice(1);
     lbl.textContent = 'Locked for 7 days. All tests will use this topic.';
+    if (titleEl) titleEl.textContent = focusTopic.charAt(0).toUpperCase() + focusTopic.slice(1) + ' Foundations';
+  }
+
+  // Stage from userState
+  const userState = JSON.parse(localStorage.getItem('gp73_user_state') || '{}');
+  if (userState.stage && userState.stage !== 'UNDEFINED') {
+    const badge = document.getElementById('headerStage');
+    if (badge) {
+      badge.textContent = 'Stage: ' + userState.stage.charAt(0) + userState.stage.slice(1).toLowerCase();
+      const cls = userState.stage === 'STUCK' ? 'stage-stuck' : userState.stage === 'GROWING' ? 'stage-growing' : 'stage-hungry';
+      badge.className = 'stage-badge ' + cls;
+    }
+  }
+
+  // Empty state
+  const tested = Object.keys(scores).filter(k => scores[k] && scores[k].length).length;
+  if (!tested) {
+    const pg = document.querySelector('.topic-grid');
+    if (pg) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'width:100%;padding:20px;text-align:center;font-size:14px;color:#555';
+      empty.textContent = 'Take your first test to begin tracking your growth.';
+      pg.parentNode.insertBefore(empty, pg);
+    }
   }
 });
 </script>
