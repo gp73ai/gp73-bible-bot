@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GP73 — Choose Your Path</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #080808; color: #efefef; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 32px; border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; background: #080808; z-index: 100; }
+  .nav-brand-name { color: #FFD600; font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+  .nav-back { color: #aaa; text-decoration: none; font-size: 14px; }
+  .nav-back:hover { color: #FFD600; }
+  .page { max-width: 960px; margin: 0 auto; padding: 60px 32px 80px; }
+  .page-eyebrow { font-size: 12px; color: #FFD600; text-transform: uppercase; letter-spacing: 3px; font-weight: 700; margin-bottom: 12px; }
+  .page-title { font-size: 38px; font-weight: 900; color: #fff; margin-bottom: 10px; line-height: 1.15; }
+  .page-sub { font-size: 16px; color: #666; margin-bottom: 48px; }
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-bottom: 48px; }
+  .tier-card { background: #111; border: 1px solid #1e1e1e; border-radius: 14px; padding: 28px 24px; display: flex; flex-direction: column; gap: 12px; transition: border-color 0.2s, transform 0.2s; }
+  .tier-card:hover { border-color: #FFD600; transform: translateY(-4px); }
+  .tier-card.featured { border-color: rgba(255,214,0,0.4); background: #0f0f00; }
+  .tier-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 100px; background: #FFD600; color: #000; width: fit-content; }
+  .tier-price { font-size: 32px; font-weight: 900; color: #FFD600; line-height: 1; }
+  .tier-price span { font-size: 15px; font-weight: 400; color: #888; }
+  .tier-name { font-size: 18px; font-weight: 800; color: #fff; }
+  .tier-tagline { font-size: 13px; color: #888; line-height: 1.6; }
+  .tier-divider { border: none; border-top: 1px solid #1e1e1e; margin: 4px 0; }
+  .tier-bullets { list-style: none; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .tier-bullets li { font-size: 13px; color: #ccc; display: flex; gap: 8px; align-items: flex-start; }
+  .tier-bullets li span { color: #FFD600; font-weight: 700; flex-shrink: 0; }
+  .tier-btn { display: block; width: 100%; text-align: center; background: #FFD600; color: #000; font-weight: 900; font-size: 14px; padding: 13px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-family: inherit; margin-top: 8px; transition: background 0.2s; }
+  .tier-btn:hover { background: #ffe033; }
+  .tier-btn.outline { background: transparent; border: 2px solid #FFD600; color: #FFD600; }
+  .tier-btn.outline:hover { background: rgba(255,214,0,0.08); }
+  .footer-note { text-align: center; font-size: 13px; color: #444; }
+  .footer-note a { color: #666; text-decoration: underline; }
+  @media (max-width: 640px) { .tiers { grid-template-columns: 1fr; } .page { padding: 40px 20px 60px; } }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-back" href="/">&larr; Back to GP73</a>
+  <div class="nav-brand-name">GP73</div>
+  <div></div>
+</nav>
+<div class="page">
+  <div class="page-eyebrow">Your Path Forward</div>
+  <h1 class="page-title">Choose Your Level</h1>
+  <p class="page-sub">Each tier builds on the last. Start where you are. Grow from there.</p>
+
+  <div class="tiers">
+
+    <!-- $7 STARTER -->
+    <div class="tier-card">
+      <div class="tier-badge">Starter</div>
+      <div class="tier-price">$7<span>/mo</span></div>
+      <div class="tier-name">See Where You Stand</div>
+      <div class="tier-tagline">Most people don't know where they truly stand. This gives you a clear starting point so you can stop guessing and start growing with direction.</div>
+      <hr class="tier-divider" />
+      <ul class="tier-bullets">
+        <li><span>&#9656;</span> Access to foundational topic tests</li>
+        <li><span>&#9656;</span> Basic growth tracking dashboard</li>
+        <li><span>&#9656;</span> Measure your current level of understanding</li>
+        <li><span>&#9656;</span> Identify gaps in knowledge and consistency</li>
+      </ul>
+      <a class="tier-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Start Here &rarr;</a>
+    </div>
+
+    <!-- $19 BUILDER -->
+    <div class="tier-card featured">
+      <div class="tier-badge" style="background:#FFD600;color:#000">Builder &mdash; Best Value</div>
+      <div class="tier-price">$19<span>/mo</span></div>
+      <div class="tier-name">Start Growing With Structure</div>
+      <div class="tier-tagline">Growth doesn't happen from information alone. This level helps you build consistency so what you learn actually starts changing how you live.</div>
+      <hr class="tier-divider" />
+      <ul class="tier-bullets">
+        <li><span>&#9656;</span> Expanded access to topic tests</li>
+        <li><span>&#9656;</span> Improved progress tracking across sessions</li>
+        <li><span>&#9656;</span> Begin recognizing patterns in your understanding</li>
+        <li><span>&#9656;</span> Build consistency in study and application</li>
+      </ul>
+      <button class="tier-btn" onclick="gp73Coming('core')">Start Growing &rarr;</button>
+    </div>
+
+    <!-- $39 DISCIPLESHIP -->
+    <div class="tier-card">
+      <div class="tier-badge" style="background:#333;color:#FFD600">Discipleship</div>
+      <div class="tier-price">$39<span>/mo</span></div>
+      <div class="tier-name">Commit to Real Growth</div>
+      <div class="tier-tagline">This is where transformation happens. Track your progress, refine your understanding, and develop consistency in truth.</div>
+      <hr class="tier-divider" />
+      <ul class="tier-bullets">
+        <li><span>&#9656;</span> Full access to all tests and topics</li>
+        <li><span>&#9656;</span> Complete growth dashboard with insights</li>
+        <li><span>&#9656;</span> Pattern tracking across your learning</li>
+        <li><span>&#9656;</span> Structured path for ongoing development</li>
+      </ul>
+      <button class="tier-btn" onclick="gp73Coming('premium')">Commit to Growth &rarr;</button>
+    </div>
+
+    <!-- $99 FRAMEWORK -->
+    <div class="tier-card">
+      <div class="tier-badge" style="background:#1a1a1a;color:#aaa">Framework</div>
+      <div class="tier-price">$99<span> one-time</span></div>
+      <div class="tier-name">Learn How to Understand Scripture for Yourself</div>
+      <div class="tier-tagline">7 structured video modules. A repeatable system to study, interpret, and teach the Word independently. The dashboard will not guide you &mdash; it will reveal you.</div>
+      <hr class="tier-divider" />
+      <ul class="tier-bullets">
+        <li><span>&#9656;</span> 7 structured video teaching modules</li>
+        <li><span>&#9656;</span> How to interpret scripture without guessing</li>
+        <li><span>&#9656;</span> Growth dashboard &mdash; self-directed</li>
+        <li><span>&#9656;</span> Downloadable study PDFs</li>
+      </ul>
+      <button class="tier-btn outline" onclick="gp73Coming('framework')">Get the Framework &rarr;</button>
+    </div>
+
+  </div>
+  <p class="footer-note">Questions? <a href="/">Go back</a> and ask GP73 directly.</p>
+</div>
+<script>
+function gp73Coming(tier) {
+  // TODO: wire to Stripe checkout sessions when ready
+  var msgs = {
+    core: 'Builder access ($19/mo) is being finalized. You're early. Check back shortly.',
+    premium: 'Discipleship access ($39/mo) is being finalized. Check back shortly.',
+    framework: 'Framework access ($99) is being finalized. You'll be able to enter shortly.'
+  };
+  alert(msgs[tier] || 'Coming soon.');
+}
+</script>
+</body>
+</html>
