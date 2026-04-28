@@ -1314,8 +1314,16 @@ function getMemory(sessionId) {
     dominantPath: null,       // most consistent path across session
     pathCounts: {},           // count of each path used
     escalationHistory: { count: 0, lastPath: null, lastTurn: 0 },
-    repeatedPhrases: [],      // phrases user has said more than once
+    repeatedPhrases: {},      // phrases user has said more than once
     turnCount: 0,             // total turns in session
+    // USER STATE SCHEMA
+    userState: {
+      stage: 'UNDEFINED',        // UNDEFINED | AWARE | SEEKING | ENGAGED | RESISTANT | GROWING
+      topicsEngaged: [],         // topics user has meaningfully engaged with
+      resistanceLevel: 0,        // 0-5 scale, increments on resistance signals
+      hungerLevel: 0,            // 0-5 scale, increments on hunger/growth signals
+      lastActionTaken: false,    // true when user confirms they applied something
+    },
   };
 }
 
@@ -1424,6 +1432,60 @@ function updateMemory(sessionId, question, answer, userState, issueSummary, path
       if (existing) existing.count = r.count;
     }
   }
+
+  // USER STATE UPDATES
+  mem.userState = mem.userState || {
+    stage: 'UNDEFINED', topicsEngaged: [], resistanceLevel: 0, hungerLevel: 0, lastActionTaken: false
+  };
+
+  // Track topics engaged
+  if (topic !== 'general' && !mem.userState.topicsEngaged.includes(topic)) {
+    mem.userState.topicsEngaged.push(topic);
+  }
+
+  // Resistance level: increment on RESISTANCE path, decay slowly on other paths
+  if (path === 'RESISTANCE') {
+    mem.userState.resistanceLevel = Math.min(5, (mem.userState.resistanceLevel || 0) + 1);
+  } else if (mem.userState.resistanceLevel > 0) {
+    mem.userState.resistanceLevel = Math.max(0, mem.userState.resistanceLevel - 0.5);
+  }
+
+  // Hunger level: increment on HUNGER path or SEEKING + growth language
+  if (path === 'HUNGER') {
+    mem.userState.hungerLevel = Math.min(5, (mem.userState.hungerLevel || 0) + 1);
+  } else if (path === 'SEEKING') {
+    mem.userState.hungerLevel = Math.min(5, (mem.userState.hungerLevel || 0) + 0.5);
+  }
+
+  // Detect if user confirmed action taken
+  const lowerQ = question.toLowerCase();
+  if (/i did|i tried it|i applied|i actually did|i followed|i started|i went|i prayed|i read/.test(lowerQ)) {
+    mem.userState.lastActionTaken = true;
+  } else {
+    mem.userState.lastActionTaken = false;
+  }
+
+  // Update stage based on accumulated signals
+  const r = mem.userState.resistanceLevel;
+  const h = mem.userState.hungerLevel;
+  const topics = mem.userState.topicsEngaged.length;
+  const turns = mem.turnCount;
+
+  if (turns === 0 || !topics) {
+    mem.userState.stage = 'UNDEFINED';
+  } else if (r >= 3) {
+    mem.userState.stage = 'RESISTANT';
+  } else if (h >= 3) {
+    mem.userState.stage = 'GROWING';
+  } else if (mem.userState.lastActionTaken) {
+    mem.userState.stage = 'ENGAGED';
+  } else if (topics >= 2) {
+    mem.userState.stage = 'SEEKING';
+  } else {
+    mem.userState.stage = 'AWARE';
+  }
+
+  console.log('[GP73 USER STATE]', JSON.stringify(mem.userState));
 
   sessionMemory.set(sessionId, mem);
   if (sessionMemory.size > 500) {
@@ -1581,8 +1643,13 @@ export default async function handler(req, res) {
       console.log('[GP73 IDENTITY] Repeated patterns:', repeats.map(r => r.phrase));
     }
 
+    const currentUserState = getMemory(sessionId).userState;
     console.log('[GP73 FINAL]', finalAnswer);
-    return res.status(200).json({ source: 'gp73-brain', answer: finalAnswer });
+    return res.status(200).json({
+      source: 'gp73-brain',
+      answer: finalAnswer,
+      userState: currentUserState  // frontend can use this for progress tracking
+    });
 
   } catch (error) {
     console.error('[GP73 ERROR]', error.message);
