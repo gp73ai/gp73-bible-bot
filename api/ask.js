@@ -640,7 +640,7 @@ function buildContext(docs = []) {
 // ============================================================
 // PART 4 — GPT CALL with posture-aware transformation
 // ============================================================
-async function callGPT(messages) {
+async function callGPT(messages, maxTokens = 250) {
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -650,7 +650,7 @@ async function callGPT(messages) {
     body: JSON.stringify({
       model: 'gpt-4o',
       temperature: 0.4,
-      max_tokens: 250,
+      max_tokens: maxTokens,
       messages,
     }),
   });
@@ -836,24 +836,90 @@ function classifyPath(q, detectionState, toneClass, sessionPath) {
 // ============================================================
 function checkEscalation(mem, path) {
   if (!mem || !path || path === 'unset') return null;
-  if ((mem.pathTurnCount || 0) < 3) return null;
+  if ((mem.pathTurnCount || 0) < 3) return null; // minimum 3 turns before escalation
   if (mem.lastEscalatedPath === path) return null; // already escalated this cycle
 
   const escalations = {
     RENEWAL: {
-      instruction: `ESCALATION MODE — RENEWAL:\nThis person has been circling the same topic for multiple turns without movement.\nStop probing. Confront the belief gap directly.\nDo NOT ask another question. Make a statement that names the real issue.\nExample pattern: "At this point, it's not a lack of knowledge -- it's a lack of alignment."\nBe firm. Be specific. Name what's actually holding them back based on everything they've said.`,
+      instruction: `ESCALATION — LOOP DETECTED. DO NOT TEACH. DO NOT EXPLAIN.
+This person has circled the same issue for 3+ turns without movement.
+Your ONLY job right now is to break the loop.
+
+FORMAT (strict):
+- 1 sentence: identify the pattern you see ("You keep saying X but nothing changes")
+- 1 sentence: present the 2 possibilities with no escape route
+- 1 forced-choice question — no soft ending
+
+EXAMPLE:
+"You've said this multiple times now, but the pattern hasn't changed. At this point, either you're not actually applying what you hear, or you're doing it your way instead of God's way. Which one is it?"
+
+HARD RULES:
+- Max 3-4 sentences total
+- No teaching paragraphs
+- No soft language
+- No "I understand" or "it's okay"
+- End with a forced-choice question — not an open question
+- Do NOT use: "At this point, it's not a lack of knowledge"
+- Name the actual repeated behavior you see`,
       marker: 'RENEWAL_ESCALATED'
     },
     RESISTANCE: {
-      instruction: `ESCALATION MODE — RESISTANCE:\nThis person has been pushing back for multiple turns. Stop reasoning with the resistance.\nForce a decision. Do NOT add more explanation.\nClose with a direct binary choice: will they change or not?\nExample: "Are you willing to change this or not? That's the only question that matters now."\nNo softening. No additional teaching. One clear demand.`,
+      instruction: `ESCALATION — LOOP DETECTED. DO NOT TEACH. DO NOT EXPLAIN.
+This person has pushed back 3+ turns. Reasoning is not working.
+Your ONLY job is to force a decision.
+
+FORMAT (strict):
+- 1 sentence: name the resistance pattern directly
+- 1 sentence: reduce it to a binary
+- 1 forced-choice question — no escape route
+
+EXAMPLE:
+"You've been arguing the same point for a while now, but the argument doesn't change what's true. Either you're willing to submit to this or you're not. Which is it?"
+
+HARD RULES:
+- Max 3-4 sentences
+- No new evidence, no new teaching
+- End with binary: yes or no, this or that
+- No softening whatsoever`,
       marker: 'RESISTANCE_ESCALATED'
     },
     CLARITY: {
-      instruction: `ESCALATION MODE — CLARITY:\nThis person has been receiving explanation for multiple turns but understanding isn't sticking.\nStop explaining. Test what they actually retained.\nDo NOT reteach. Ask them to explain it back.\nClose with: "Explain it back to me in your own words." or equivalent.\nIf they can't do it, that reveals where the real gap is.`,
+      instruction: `ESCALATION — LOOP DETECTED. STOP EXPLAINING.
+This person has received explanation for 3+ turns. If it hasn't landed, more explanation won't fix it.
+Your ONLY job is to test what they actually retained.
+
+FORMAT (strict):
+- 1 sentence: acknowledge the loop without judgment
+- 1 command: ask them to explain it back
+
+EXAMPLE:
+"We've been over this a few times now. Before we go further, explain it back to me in your own words — what does this actually mean to you?"
+
+HARD RULES:
+- Max 2-3 sentences
+- Do NOT reteach anything
+- Do NOT add new concepts
+- The question must require them to produce understanding, not just agree`,
       marker: 'CLARITY_ESCALATED'
     },
     HUNGER: {
-      instruction: `ESCALATION MODE — HUNGER:\nThis person is ready and has been engaging for multiple turns.\nStop teaching concepts. Give them an action step.\nAssign something specific and concrete they can do today.\nClose with: "Do this today and come back." or equivalent.\nDo NOT give a vague assignment. Be specific about what they should do.`,
+      instruction: `ESCALATION — LOOP DETECTED. STOP TEACHING.
+This person has been engaging for 3+ turns. More concepts won't move them.
+Your ONLY job is to assign a specific action.
+
+FORMAT (strict):
+- 1 sentence: name that it's time to move from knowing to doing
+- 1 specific action step they can do today (not vague)
+- 1 close: "Do this today and come back."
+
+EXAMPLE:
+"You've heard enough to move. Today, take one specific area we've talked about and do the opposite of what you've been doing in that area. Do it today and come back."
+
+HARD RULES:
+- Max 3-4 sentences
+- The action must be concrete, not conceptual
+- No new teaching
+- No follow-up questions — just the assignment`,
       marker: 'HUNGER_ESCALATED'
     },
   };
@@ -1148,13 +1214,21 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
     return groundingScore >= 0.25; // at least 25% of key terms must appear
   }
 
+  // Use tight token limit during escalation to prevent teaching paragraphs
+  const tokenLimit = escalation ? 120 : 250;
+
   // First attempt
-  const firstRaw = await callGPT(messages);
+  const firstRaw = await callGPT(messages, tokenLimit);
   console.log('[GP73 RAW]', firstRaw);
   const firstClean = voiceCheck(firstRaw);
 
+  // During escalation skip grounding check -- we want the confrontation, not the teaching
+  if (escalation && firstClean) {
+    return { answer: firstClean, toneClass, userSignal, detectionState, path, escalated: true };
+  }
+
   if (firstClean && isGrounded(firstClean, teachingContext)) {
-    return { answer: firstClean, toneClass, userSignal, detectionState, path, escalated: !!escalation };
+    return { answer: firstClean, toneClass, userSignal, detectionState, path, escalated: false };
   }
 
   // If not grounded or failed voice check -- regenerate with stricter anchor
@@ -1166,7 +1240,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
     },
     messages[1]
   ];
-  const secondRaw = await callGPT(anchoredMessages);
+  const secondRaw = await callGPT(anchoredMessages, tokenLimit);
   console.log('[GP73 RAW 2]', secondRaw);
   const secondClean = voiceCheck(secondRaw);
   return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal, detectionState, path, escalated: !!escalation };
