@@ -985,7 +985,11 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
 const sessionMemory = new Map();
 
 function getMemory(sessionId) {
-  return sessionMemory.get(sessionId) || { history: [], lastTopic: null, lastUserState: null, lastIssueSummary: null };
+  return sessionMemory.get(sessionId) || {
+    interactions: [],   // up to 5 structured interaction records
+    topicCounts: {},    // tracks how many times each topic has appeared
+    struggleTopics: [], // topics where user showed STRUGGLING signal
+  };
 }
 
 // Extract a short topic label from the question
@@ -1004,6 +1008,8 @@ function extractTopic(question) {
     ['suffering', ['suffering', 'pain', 'trials', 'why does god allow', 'hard times']],
     ['church', ['church', 'body of christ', 'pastors', 'ministry', 'hypocrites']],
     ['obedience', ['obey', 'obedience', 'commands', 'follow god', 'discipleship']],
+    ['transformation', ['transform', 'change', 'renew', 'grow', 'sanctif']],
+    ['doubt', ['doubt', 'not sure', 'questioning', 'is god real']],
   ];
   for (const [label, keywords] of topics) {
     if (keywords.some(k => lower.includes(k))) return label;
@@ -1015,12 +1021,25 @@ function updateMemory(sessionId, question, answer, userState, issueSummary) {
   const mem = getMemory(sessionId);
   const topic = extractTopic(question);
 
-  mem.history.push({ question, answer });
-  if (mem.history.length > 2) mem.history.shift();
+  // Build structured interaction record
+  const record = {
+    topic,
+    userState,           // SEEKING / STRUGGLING / CORRECTION
+    issueSummary,        // short plain-language description of what user was dealing with
+    questionShort: question.slice(0, 80),
+    instructionGiven: answer.slice(0, 120), // first part of what we told them
+  };
 
-  mem.lastTopic = topic;
-  mem.lastUserState = userState;
-  mem.lastIssueSummary = issueSummary;
+  mem.interactions.push(record);
+  if (mem.interactions.length > 5) mem.interactions.shift();
+
+  // Track topic frequency
+  mem.topicCounts[topic] = (mem.topicCounts[topic] || 0) + 1;
+
+  // Track struggle patterns
+  if (userState === 'STRUGGLING' && !mem.struggleTopics.includes(topic)) {
+    mem.struggleTopics.push(topic);
+  }
 
   sessionMemory.set(sessionId, mem);
   if (sessionMemory.size > 500) {
@@ -1030,19 +1049,44 @@ function updateMemory(sessionId, question, answer, userState, issueSummary) {
 }
 
 function buildConversationContext(mem, currentQuestion) {
-  const { history, lastTopic, lastUserState, lastIssueSummary } = mem;
-  if (!history.length) return null;
+  const { interactions, topicCounts, struggleTopics } = mem;
+  if (!interactions.length) return null;
 
   const currentTopic = extractTopic(currentQuestion);
-  const sameTopicContinuity = lastTopic && currentTopic === lastTopic && lastIssueSummary
-    ? `[TOPIC CONTINUITY: The user was previously dealing with "${lastIssueSummary}" under the topic of ${lastTopic}. If this question connects to that, add a brief, natural bridge -- one short phrase only, not a full reference.  If it does NOT connect, ignore this.`
-    : null;
+  const priorOnTopic = interactions.filter(i => i.topic === currentTopic);
+  const topicRepeat = (topicCounts[currentTopic] || 0) >= 2;
+  const priorStruggle = struggleTopics.includes(currentTopic);
 
-  const historyNote = history.map((turn, i) =>
-    `[Prior turn ${i + 1}]\nThey asked: ${turn.question}\nYou said: ${turn.answer.slice(0, 150)}`
-  ).join('\n\n');
+  const lines = [];
 
-  return [historyNote, sameTopicContinuity].filter(Boolean).join('\n\n');
+  // Compact interaction summary -- last 3 only, no full transcripts
+  const recent = interactions.slice(-3);
+  lines.push('PRIOR INTERACTIONS (summary only):');
+  recent.forEach((r, i) => {
+    lines.push(`[${i + 1}] Topic: ${r.topic} | State: ${r.userState} | Asked: "${r.questionShort}" | Told: "${r.instructionGiven}..."`);
+  });
+
+  // Behavioral signals for the prompt
+  if (topicRepeat && priorOnTopic.length) {
+    lines.push(`\nTOPIC REPEAT DETECTED: The user has returned to "${currentTopic}" ${topicCounts[currentTopic]} times.`);
+    lines.push('Do NOT repeat the same teaching angle. Build on what was already given. Go deeper.');
+    lines.push(`Last instruction on this topic: "${priorOnTopic[priorOnTopic.length-1].instructionGiven}..."`);
+  }
+
+  if (priorStruggle) {
+    lines.push(`\nSTRUGGLE PATTERN: User has previously shown struggle with "${currentTopic}".`);
+    lines.push('If this question reflects continued difficulty, reference the pattern naturally and deepen the instruction.');
+    lines.push('Example: "You\'ve been wrestling with this..." or "Since this keeps coming up..."');
+    lines.push('Use this ONLY if it fits naturally. Do NOT force it.');
+  }
+
+  lines.push('\nUSAGE RULES:');
+  lines.push('- Reference prior interactions only when it adds genuine value');
+  lines.push('- Do NOT repeat what was already said');
+  lines.push('- A natural reference: "Last time..." or "Since you\'ve been working through this..."');
+  lines.push('- If nothing connects, ignore this context entirely');
+
+  return lines.join('\n');
 }
 
 // ============================================================
