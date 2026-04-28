@@ -1604,13 +1604,24 @@ export default async function handler(req, res) {
     if (hardCoded) {
       console.log('[GP73] Hard-coded match');
       const answer = voiceCheck(enforceDoctrine(question, hardCoded)) || hardCoded;
-      return res.status(200).json({ source: 'gp73-brain', answer });
+      // Still update memory and state for hard-coded answers
+      const toneHC = classifyTone(question);
+      const { detectionState: dsHC } = extractUserSignal(question);
+      const pathHC = classifyPath(question, dsHC, toneHC, getMemory(sessionId).currentPath);
+      updateMemory(sessionId, question, answer, toneHC, dsHC, pathHC);
+      const userStateHC = getMemory(sessionId).userState;
+      return res.status(200).json({ source: 'gp73-brain', answer, userState: userStateHC });
     }
 
     // STEP 2 — Doctrine filter (gay/same sex handled before GPT)
     const doctrineAnswer = enforceDoctrine(question, '');
     if (doctrineAnswer) {
-      return res.status(200).json({ source: 'gp73-brain', answer: doctrineAnswer });
+      const toneDR = classifyTone(question);
+      const { detectionState: dsDR } = extractUserSignal(question);
+      const pathDR = classifyPath(question, dsDR, toneDR, getMemory(sessionId).currentPath);
+      updateMemory(sessionId, question, doctrineAnswer, toneDR, dsDR, pathDR);
+      const userStateDR = getMemory(sessionId).userState;
+      return res.status(200).json({ source: 'gp73-brain', answer: doctrineAnswer, userState: userStateDR });
     }
 
     // STEP 3 — Detect intent and posture
