@@ -828,6 +828,39 @@ function classifyPath(q, detectionState, toneClass, sessionPath) {
   return 'CLARITY';
 }
 
+// ============================================================
+// ESCALATION ENGINE
+// Triggers after 3+ turns on same path without progress.
+// Returns escalation instruction to override normal response strategy.
+// Only fires once per path cycle (lastEscalatedPath prevents double-fire).
+// ============================================================
+function checkEscalation(mem, path) {
+  if (!mem || !path || path === 'unset') return null;
+  if ((mem.pathTurnCount || 0) < 3) return null;
+  if (mem.lastEscalatedPath === path) return null; // already escalated this cycle
+
+  const escalations = {
+    RENEWAL: {
+      instruction: `ESCALATION MODE — RENEWAL:\nThis person has been circling the same topic for multiple turns without movement.\nStop probing. Confront the belief gap directly.\nDo NOT ask another question. Make a statement that names the real issue.\nExample pattern: "At this point, it's not a lack of knowledge -- it's a lack of alignment."\nBe firm. Be specific. Name what's actually holding them back based on everything they've said.`,
+      marker: 'RENEWAL_ESCALATED'
+    },
+    RESISTANCE: {
+      instruction: `ESCALATION MODE — RESISTANCE:\nThis person has been pushing back for multiple turns. Stop reasoning with the resistance.\nForce a decision. Do NOT add more explanation.\nClose with a direct binary choice: will they change or not?\nExample: "Are you willing to change this or not? That's the only question that matters now."\nNo softening. No additional teaching. One clear demand.`,
+      marker: 'RESISTANCE_ESCALATED'
+    },
+    CLARITY: {
+      instruction: `ESCALATION MODE — CLARITY:\nThis person has been receiving explanation for multiple turns but understanding isn't sticking.\nStop explaining. Test what they actually retained.\nDo NOT reteach. Ask them to explain it back.\nClose with: "Explain it back to me in your own words." or equivalent.\nIf they can't do it, that reveals where the real gap is.`,
+      marker: 'CLARITY_ESCALATED'
+    },
+    HUNGER: {
+      instruction: `ESCALATION MODE — HUNGER:\nThis person is ready and has been engaging for multiple turns.\nStop teaching concepts. Give them an action step.\nAssign something specific and concrete they can do today.\nClose with: "Do this today and come back." or equivalent.\nDo NOT give a vague assignment. Be specific about what they should do.`,
+      marker: 'HUNGER_ESCALATED'
+    },
+  };
+
+  return escalations[path] || null;
+}
+
 function getPathStrategy(path) {
   const strategies = {
     CLARITY: {
@@ -925,7 +958,7 @@ function classifyTone(q) {
   return 'SEEKING';
 }
 
-async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null, sessionPath = 'unset') {
+async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null, sessionPath = 'unset', sessionMem = null) {
 
   // Classify tone and extract user signal
   const toneClass = classifyTone(question);
@@ -957,7 +990,7 @@ Return ONLY the question. One sentence. Natural. No intro.`;
     });
     const rd = await r.json();
     const clarifyQ = (rd.choices?.[0]?.message?.content || '').trim();
-    return { answer: clarifyQ || 'What exactly did you understand from that?', toneClass, userSignal, detectionState, path };
+    return { answer: clarifyQ || 'What exactly did you understand from that?', toneClass, userSignal, detectionState, path, escalated: false };
   }
 
   if (detectionState === 'unclear_application') {
@@ -976,7 +1009,7 @@ Return ONLY the question. One sentence. Natural. No intro.`;
     });
     const rd = await r.json();
     const investigateQ = (rd.choices?.[0]?.message?.content || '').trim();
-    return { answer: investigateQ || 'What did you actually do?', toneClass, userSignal, detectionState, path };
+    return { answer: investigateQ || 'What did you actually do?', toneClass, userSignal, detectionState, path, escalated: false };
   }
 
   // For CORRECTION: detect sensitivity level to calibrate delivery
@@ -1021,9 +1054,13 @@ VOICE CONSISTENCY RULES:
 - Vary sentence structure and tone, but keep the same theological vocabulary and framework
 - Authority comes through precision, not volume. Say the exact thing. Not more.`;
 
-  const pathInstruction = `
-CONVERSATION PATH: ${path}
-${pathStrategy.responseInstruction}`;
+  // Check if escalation is needed (3+ turns same path, not yet escalated this cycle)
+  const escalation = checkEscalation(sessionMem, path);
+  if (escalation) console.log('[GP73 ESCALATION]', path);
+
+  const pathInstruction = escalation
+    ? `\n${escalation.instruction}`
+    : `\nCONVERSATION PATH: ${path}\n${pathStrategy.responseInstruction}`;
 
   const groundedSystem = teachingContext
     ? `You are a biblical teacher responding from the teaching content provided below.
@@ -1117,7 +1154,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const firstClean = voiceCheck(firstRaw);
 
   if (firstClean && isGrounded(firstClean, teachingContext)) {
-    return { answer: firstClean, toneClass, userSignal, detectionState, path };
+    return { answer: firstClean, toneClass, userSignal, detectionState, path, escalated: !!escalation };
   }
 
   // If not grounded or failed voice check -- regenerate with stricter anchor
@@ -1132,7 +1169,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const secondRaw = await callGPT(anchoredMessages);
   console.log('[GP73 RAW 2]', secondRaw);
   const secondClean = voiceCheck(secondRaw);
-  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal, detectionState, path };
+  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal, detectionState, path, escalated: !!escalation };
 }
 
 // ============================================================
@@ -1146,10 +1183,12 @@ const sessionMemory = new Map();
 
 function getMemory(sessionId) {
   return sessionMemory.get(sessionId) || {
-    interactions: [],   // up to 5 structured interaction records
-    topicCounts: {},    // tracks how many times each topic has appeared
-    struggleTopics: [], // topics where user showed STRUGGLING signal
-    currentPath: 'unset', // active conversation path
+    interactions: [],       // up to 5 structured interaction records
+    topicCounts: {},        // tracks how many times each topic has appeared
+    struggleTopics: [],     // topics where user showed STRUGGLING signal
+    currentPath: 'unset',  // active conversation path
+    pathTurnCount: 0,       // consecutive turns on the same path
+    lastEscalatedPath: null, // prevent double escalation in same cycle
   };
 }
 
@@ -1203,8 +1242,17 @@ function updateMemory(sessionId, question, answer, userState, issueSummary, path
     mem.struggleTopics.push(topic);
   }
 
-  // Update current path -- only allow shift when explicitly detected
-  if (path !== 'unset') mem.currentPath = path;
+  // Path tracking + turn counting
+  if (path !== 'unset') {
+    if (path === mem.currentPath) {
+      mem.pathTurnCount = (mem.pathTurnCount || 0) + 1;
+    } else {
+      // Path shifted -- reset turn count, clear escalation lock
+      mem.pathTurnCount = 1;
+      mem.lastEscalatedPath = null;
+    }
+    mem.currentPath = path;
+  }
 
   sessionMemory.set(sessionId, mem);
   if (sessionMemory.size > 500) {
@@ -1308,9 +1356,17 @@ export default async function handler(req, res) {
     // teachingContext replaces generic VOICE_SYSTEM_PROMPT when available
     // conversationContext adds last 1-2 turns for continuity -- does NOT override current question
     const systemPrompt = intent === 'general' ? GENERAL_PROMPT : VOICE_SYSTEM_PROMPT;
-    // Pass current session path into safeGenerate for consistency
-    const currentPath = getMemory(sessionId).currentPath || 'unset';
-    const { answer, toneClass, userSignal, detectionState, path } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext, currentPath);
+    // Pass current session memory into safeGenerate for path + escalation logic
+    const liveMem = getMemory(sessionId);
+    const currentPath = liveMem.currentPath || 'unset';
+    const { answer, toneClass, userSignal, detectionState, path, escalated } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext, currentPath, liveMem);
+
+    // If escalation fired, mark it so it doesn't fire again next turn
+    if (escalated) {
+      const mem = getMemory(sessionId);
+      mem.lastEscalatedPath = path;
+      sessionMemory.set(sessionId, mem);
+    }
 
     // STEP 6 — Conversation control: decide if a follow-up question is needed
     // Skip if system already returned an investigative question (acknowledgement/unclear_application)
