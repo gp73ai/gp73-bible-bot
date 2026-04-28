@@ -686,7 +686,10 @@ function shouldAskFollowUp(userSignal, toneClass, question) {
   return false;
 }
 
-async function generateFollowUp(question, answer, teachingContext) {
+async function generateFollowUp(question, answer, teachingContext, pathGuidance = null) {
+  const guidanceNote = pathGuidance
+    ? `\nPath-specific guidance: ${pathGuidance}`
+    : '';
   const prompt = `A person asked: "${question}"
 
 You gave this answer:
@@ -699,7 +702,7 @@ Generate ONE follow-up question that:
 - Feels natural at the end of the response, not scripted
 - Is specific, not generic
 - Is a single sentence
-- Does NOT start with "Have you ever", "Do you think", or "What do you believe" unless nothing else fits
+- Does NOT start with "Have you ever", "Do you think", or "What do you believe" unless nothing else fits${guidanceNote}
 
 Return ONLY the question. No intro. No label. No extra text.`;
 
@@ -784,6 +787,92 @@ function extractUserSignal(q) {
 }
 
 // ============================================================
+// CONVERSATION PATH CLASSIFIER
+// Classifies user into one of 4 guided progression paths.
+// Path persists per session unless user language clearly shifts.
+// CLARITY: confused, needs simplification
+// RENEWAL: understands but stuck/not applying
+// RESISTANCE: pushing back, justifying, defending
+// HUNGER: actively seeking growth, ready to go deeper
+// ============================================================
+function classifyPath(q, detectionState, toneClass, sessionPath) {
+  const lower = q.toLowerCase();
+
+  // RESISTANCE signals -- override session path immediately
+  if (
+    toneClass === 'CORRECTION' ||
+    /i don.t think|i disagree|but why|that.s not|i don.t believe|you.re wrong|why should i|i don.t need/.test(lower)
+  ) return 'RESISTANCE';
+
+  // CLARITY signals
+  if (
+    detectionState === 'acknowledgement' ||
+    /confused|don.t understand|what does that mean|how does that work|can you explain|i.m lost|unclear/.test(lower)
+  ) return 'CLARITY';
+
+  // RENEWAL signals -- knows truth but stuck
+  if (
+    detectionState === 'unclear_application' ||
+    /i know but|i understand but|i still|i keep|it.s not working|i.ve tried|nothing changes|same cycle|stuck/.test(lower)
+  ) return 'RENEWAL';
+
+  // HUNGER signals -- actively pursuing, ready for more
+  if (
+    /how do i|i want to|teach me|show me|i.m ready|what.s next|i want to grow|go deeper|what should i do/.test(lower)
+  ) return 'HUNGER';
+
+  // Default: keep current session path if set, otherwise infer from tone
+  if (sessionPath && sessionPath !== 'unset') return sessionPath;
+  if (toneClass === 'STRUGGLING') return 'RENEWAL';
+  if (toneClass === 'SEEKING') return 'HUNGER';
+  return 'CLARITY';
+}
+
+function getPathStrategy(path) {
+  const strategies = {
+    CLARITY: {
+      responseInstruction: `The user is confused and needs clarity.
+- Simplify the truth without dumbing it down
+- Use plain, direct language -- no theological complexity
+- Confirm understanding by the end
+- Do NOT assume they grasp what they haven't asked about
+- One core idea per response`,
+      followUpTemplate: 'What do you understand now?',
+      followUpGuidance: 'Ask a short question to confirm their understanding of what was just explained. Natural, not a test.'
+    },
+    RENEWAL: {
+      responseInstruction: `The user understands the truth but is stuck and not applying it.
+- Do NOT re-explain basics they already know
+- Expose the belief gap -- what they say vs what they actually believe
+- Be direct about what is blocking them
+- Push toward action, not just knowledge`,
+      followUpTemplate: 'What are you actually believing right now?',
+      followUpGuidance: 'Ask a question that exposes the gap between what they know and what they actually believe in practice. Make it personal.'
+    },
+    RESISTANCE: {
+      responseInstruction: `The user is pushing back, justifying, or defending a wrong position.
+- Confront directly -- no softening, no hedging
+- Name the contradiction immediately
+- Do NOT validate the resistance
+- Do NOT over-explain -- make the point and hold it
+- Authority comes from precision, not volume`,
+      followUpTemplate: 'Are you willing to change that?',
+      followUpGuidance: 'Ask a short, direct question that calls for a decision, not more discussion. Do not offer escape routes.'
+    },
+    HUNGER: {
+      responseInstruction: `The user is ready to grow and actively pursuing truth.
+- Go deeper than the obvious answer
+- Introduce a higher-level truth or principle they may not have considered
+- Challenge them toward the next level of understanding
+- Treat them as capable of more -- do not hold back`,
+      followUpTemplate: 'Are you ready to apply this?',
+      followUpGuidance: 'Ask a forward-looking question that calls them to action on what was just taught. Specific to the topic.'
+    },
+  };
+  return strategies[path] || strategies.CLARITY;
+}
+
+// ============================================================
 // CORRECTION SENSITIVITY DETECTOR
 // Only runs when toneClass = CORRECTION
 // HIGH = identity, worth, salvation status, emotional charge
@@ -836,7 +925,7 @@ function classifyTone(q) {
   return 'SEEKING';
 }
 
-async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null) {
+async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null, sessionPath = 'unset') {
 
   // Classify tone and extract user signal
   const toneClass = classifyTone(question);
@@ -844,6 +933,11 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
   console.log('[GP73 TONE]', toneClass);
   console.log('[GP73 SIGNAL]', userSignal);
   console.log('[GP73 STATE]', detectionState);
+
+  // Classify conversation path
+  const path = classifyPath(question, detectionState, toneClass, sessionPath);
+  const pathStrategy = getPathStrategy(path);
+  console.log('[GP73 PATH]', path);
 
   // INVESTIGATION-FIRST ROUTING
   // For acknowledgement or unclear application -- ask before diagnosing
@@ -863,7 +957,7 @@ Return ONLY the question. One sentence. Natural. No intro.`;
     });
     const rd = await r.json();
     const clarifyQ = (rd.choices?.[0]?.message?.content || '').trim();
-    return { answer: clarifyQ || 'What exactly did you understand from that?', toneClass, userSignal, detectionState };
+    return { answer: clarifyQ || 'What exactly did you understand from that?', toneClass, userSignal, detectionState, path };
   }
 
   if (detectionState === 'unclear_application') {
@@ -882,7 +976,7 @@ Return ONLY the question. One sentence. Natural. No intro.`;
     });
     const rd = await r.json();
     const investigateQ = (rd.choices?.[0]?.message?.content || '').trim();
-    return { answer: investigateQ || 'What did you actually do?', toneClass, userSignal, detectionState };
+    return { answer: investigateQ || 'What did you actually do?', toneClass, userSignal, detectionState, path };
   }
 
   // For CORRECTION: detect sensitivity level to calibrate delivery
@@ -927,6 +1021,10 @@ VOICE CONSISTENCY RULES:
 - Vary sentence structure and tone, but keep the same theological vocabulary and framework
 - Authority comes through precision, not volume. Say the exact thing. Not more.`;
 
+  const pathInstruction = `
+CONVERSATION PATH: ${path}
+${pathStrategy.responseInstruction}`;
+
   const groundedSystem = teachingContext
     ? `You are a biblical teacher responding from the teaching content provided below.
 You do NOT generate generic Christian answers.
@@ -934,6 +1032,8 @@ You speak from these specific teachings with their language, depth, and perspect
 No em dashes. No filler phrases. No templated openers.
 
 ${toneInstruction}
+
+${pathInstruction}
 
 ${structureRule}
 
@@ -948,6 +1048,8 @@ ${teachingContext}`
     : `${systemPrompt}
 
 ${toneInstruction}
+
+${pathInstruction}
 
 ${structureRule}
 
@@ -1015,7 +1117,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const firstClean = voiceCheck(firstRaw);
 
   if (firstClean && isGrounded(firstClean, teachingContext)) {
-    return { answer: firstClean, toneClass, userSignal, detectionState };
+    return { answer: firstClean, toneClass, userSignal, detectionState, path };
   }
 
   // If not grounded or failed voice check -- regenerate with stricter anchor
@@ -1030,7 +1132,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const secondRaw = await callGPT(anchoredMessages);
   console.log('[GP73 RAW 2]', secondRaw);
   const secondClean = voiceCheck(secondRaw);
-  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal, detectionState };
+  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal, detectionState, path };
 }
 
 // ============================================================
@@ -1047,6 +1149,7 @@ function getMemory(sessionId) {
     interactions: [],   // up to 5 structured interaction records
     topicCounts: {},    // tracks how many times each topic has appeared
     struggleTopics: [], // topics where user showed STRUGGLING signal
+    currentPath: 'unset', // active conversation path
   };
 }
 
@@ -1075,17 +1178,18 @@ function extractTopic(question) {
   return 'general';
 }
 
-function updateMemory(sessionId, question, answer, userState, issueSummary) {
+function updateMemory(sessionId, question, answer, userState, issueSummary, path) {
   const mem = getMemory(sessionId);
   const topic = extractTopic(question);
 
   // Build structured interaction record
   const record = {
     topic,
-    userState,           // SEEKING / STRUGGLING / CORRECTION
-    issueSummary,        // short plain-language description of what user was dealing with
+    userState,
+    issueSummary,
+    path,
     questionShort: question.slice(0, 80),
-    instructionGiven: answer.slice(0, 120), // first part of what we told them
+    instructionGiven: answer.slice(0, 120),
   };
 
   mem.interactions.push(record);
@@ -1098,6 +1202,9 @@ function updateMemory(sessionId, question, answer, userState, issueSummary) {
   if (userState === 'STRUGGLING' && !mem.struggleTopics.includes(topic)) {
     mem.struggleTopics.push(topic);
   }
+
+  // Update current path -- only allow shift when explicitly detected
+  if (path !== 'unset') mem.currentPath = path;
 
   sessionMemory.set(sessionId, mem);
   if (sessionMemory.size > 500) {
@@ -1201,14 +1308,17 @@ export default async function handler(req, res) {
     // teachingContext replaces generic VOICE_SYSTEM_PROMPT when available
     // conversationContext adds last 1-2 turns for continuity -- does NOT override current question
     const systemPrompt = intent === 'general' ? GENERAL_PROMPT : VOICE_SYSTEM_PROMPT;
-    const { answer, toneClass, userSignal, detectionState } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext);
+    // Pass current session path into safeGenerate for consistency
+    const currentPath = getMemory(sessionId).currentPath || 'unset';
+    const { answer, toneClass, userSignal, detectionState, path } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext, currentPath);
 
     // STEP 6 — Conversation control: decide if a follow-up question is needed
-    // Skip follow-up generation if system already returned an investigative question
+    // Skip if system already returned an investigative question (acknowledgement/unclear_application)
     let finalAnswer = answer;
     if (detectionState === 'standard' && shouldAskFollowUp(userSignal, toneClass, question)) {
       try {
-        const followUp = await generateFollowUp(question, answer, teachingContext);
+        const pathStrategy = getPathStrategy(path);
+        const followUp = await generateFollowUp(question, answer, teachingContext, pathStrategy.followUpGuidance);
         if (followUp) {
           finalAnswer = `${answer} ${followUp}`;
           console.log('[GP73 FOLLOW-UP]', followUp);
@@ -1218,8 +1328,8 @@ export default async function handler(req, res) {
       }
     }
 
-    // Save this turn to memory with enriched context
-    updateMemory(sessionId, question, finalAnswer, toneClass, userSignal);
+    // Save this turn to memory with path tracking
+    updateMemory(sessionId, question, finalAnswer, toneClass, userSignal, path);
 
     console.log('[GP73 FINAL]', finalAnswer);
     return res.status(200).json({ source: 'gp73-brain', answer: finalAnswer });
