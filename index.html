@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+Retrieving project…
+Retrieving project…
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -769,11 +774,51 @@
 
   <div id="out">Ask something real.</div>
 
-  <!-- ─── DEAD SPACE BRIDGE ─── -->
-  <div id="testBridge" style="text-align:center;padding:28px 0 8px">
-    <div style="font-size:16px;font-weight:700;color:#aaa;margin-bottom:14px;line-height:1.5">Most people think they understand.<br><span style="color:#fff">Few actually do.</span></div>
-    <button onclick="openTestModal('faith')" style="background:transparent;border:2px solid #FFD600;color:#FFD600;font-weight:800;font-size:14px;padding:12px 28px;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.02em;transition:all 0.2s" onmouseover="this.style.background='rgba(255,214,0,0.1)'" onmouseout="this.style.background='transparent'">Test Where You Really Stand &rarr;</button>
+  <!-- ─── FOUNDER VIDEO BLOCK ─── -->
+  <div id="founderVideo" style="margin-top:28px;margin-bottom:8px">
+    <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:6px">Why this exists</div>
+    <div style="font-size:13px;color:#666;margin-bottom:16px">Most people think they understand. Few actually do.</div>
+
+    <!-- Video thumbnail / embed container -->
+    <div id="videoThumb" onclick="openFounderVideo()" style="position:relative;width:100%;padding-top:56.25%;background:#0d0d0d;border:1px solid rgba(255,214,0,0.2);border-radius:10px;cursor:pointer;overflow:hidden;box-shadow:0 0 24px rgba(255,214,0,0.06);transition:border-color 0.2s" onmouseover="this.style.borderColor='rgba(255,214,0,0.5)'" onmouseout="this.style.borderColor='rgba(255,214,0,0.2)'">
+      <!-- Placeholder gradient background -->
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0d0d0d 0%,#1a1400 100%)"></div>
+      <!-- Play button -->
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;background:rgba(255,214,0,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,background 0.2s" id="playBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#000"><polygon points="8,5 19,12 8,19"/></svg>
+      </div>
+      <!-- Label overlay -->
+      <div style="position:absolute;bottom:14px;left:16px;font-size:12px;color:rgba(255,214,0,0.7);font-weight:700;letter-spacing:.08em;text-transform:uppercase">Apostle Sedrick Davis &mdash; Godsprisoner</div>
+    </div>
+
+    <!-- Inline YouTube embed (hidden until play) -->
+    <div id="videoEmbed" style="display:none;position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;margin-top:0">
+      <iframe id="ytFrame" src="" allow="autoplay;encrypted-media" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:10px"></iframe>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;font-size:13px;color:#888;font-style:italic">Watch before you go further</div>
+    <div style="text-align:center;margin-top:8px">
+      <a href="https://www.youtube.com/@iamgodsprisoner" target="_blank" style="font-size:13px;color:#FFD600;text-decoration:none;font-weight:700">Watch more teachings &rarr;</a>
+    </div>
   </div>
+
+  <script>
+  function openFounderVideo() {
+    var thumb = document.getElementById('videoThumb');
+    var embed = document.getElementById('videoEmbed');
+    var frame = document.getElementById('ytFrame');
+    var videoUrl = 'https://www.youtube.com/embed/?autoplay=1';
+    // TODO: replace with real video ID, e.g. 'https://www.youtube.com/embed/VIDEO_ID?autoplay=1'
+    if (videoUrl.indexOf('VIDEO_ID') !== -1 || videoUrl === 'https://www.youtube.com/embed/?autoplay=1') {
+      // No real video yet — open YouTube channel in new tab
+      window.open('https://www.youtube.com/@iamgodsprisoner', '_blank');
+      return;
+    }
+    thumb.style.display = 'none';
+    frame.src = videoUrl;
+    embed.style.display = 'block';
+  }
+  </script>
   <div class="study-done-banner" id="studyDoneBanner">
     <h3>You've taken in enough for today.</h3>
     <p>Growth happens when you apply what you've learned &mdash; not when you keep consuming. Come back when you've put it into practice.</p>
@@ -1387,7 +1432,9 @@
 <div class="gp73-overlay" id="paywallModal">
   <div class="gp73-modal">
     <div class="gp73-paywall">
-      <p style="font-size:12px;color:#555;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">You've already started seeing where you stand.</p>
+      <p style="font-siz
+100 59469  100 59469    0     0   256k      0 --:--:-- --:--:-- --:--:--  258k
+e:12px;color:#555;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">You've already started seeing where you stand.</p>
       <h2 id="paywallHeadline">Now track your growth and unlock full access.</h2>
       <p id="paywallBody">Continue your discipleship journey with full system access.</p>
       <div class="gp73-tier-cards">
