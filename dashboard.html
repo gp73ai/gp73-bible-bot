@@ -6,427 +6,152 @@
   <title>GP73 — Discipleship Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #f4f4f4; min-height: 100vh; }
 
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #0a0a0a;
-      color: #f4f4f4;
-      min-height: 100vh;
-    }
-
-    /* NAV */
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 32px;
-      border-bottom: 1px solid #1a1a1a;
-    }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 32px; border-bottom: 1px solid #1a1a1a; }
     .nav-brand { display: flex; align-items: center; gap: 10px; }
     .nav-brand-name { color: #FFD600; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
     .nav-links { display: flex; align-items: center; gap: 28px; }
     .nav-links a { color: #aaa; text-decoration: none; font-size: 14px; transition: color 0.2s; }
     .nav-links a:hover, .nav-links a.active { color: #FFD600; }
-    .nav-cta {
-      background: #FFD600; color: #000; font-weight: 700;
-      padding: 10px 20px; border-radius: 8px; text-decoration: none;
-      font-size: 14px; transition: opacity 0.2s;
-    }
-    .nav-cta:hover { opacity: 0.85; }
+    .nav-cta { background: #FFD600; color: #000; font-weight: 700; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; }
 
-    /* LAYOUT */
     .page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
 
-    /* HEADER */
     .page-header { margin-bottom: 40px; }
     .page-header h1 { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
     .page-header p { color: #888; font-size: 15px; }
-    .stage-badge {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 4px 14px;
-      border-radius: 100px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
+    .stage-badge { display: inline-block; margin-top: 12px; padding: 4px 14px; border-radius: 100px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
     .stage-hungry { background: rgba(255,214,0,0.15); color: #FFD600; border: 1px solid rgba(255,214,0,0.3); }
     .stage-stuck { background: rgba(255,80,80,0.1); color: #ff6060; border: 1px solid rgba(255,80,80,0.2); }
     .stage-growing { background: rgba(80,200,120,0.1); color: #50c878; border: 1px solid rgba(80,200,120,0.2); }
-
-    /* STAT CARDS */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-    .stat-card {
-      background: #111;
-      border: 1px solid #1e1e1e;
-      border-radius: 12px;
-      padding: 24px 20px;
-      position: relative;
-      overflow: hidden;
-    }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 3px; height: 100%;
-      background: #FFD600;
-      border-radius: 3px 0 0 3px;
-    }
-    .stat-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    .stat-value {
-      font-size: 28px;
-      font-weight: 800;
-      color: #FFD600;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-sub { font-size: 13px; color: #555; }
-
-    /* SECTION HEADERS */
-    .section-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #f4f4f4;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    .section { margin-bottom: 40px; }
-
-    /* LEVEL BAR */
-    .level-block {
-      background: #111;
-      border: 1px solid #1e1e1e;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 32px;
-    }
-    .level-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 14px;
-    }
-    .level-label { font-size: 13px; color: #888; }
-    .level-name { font-size: 20px; font-weight: 800; color: #FFD600; }
-    .level-fraction { font-size: 13px; color: #555; }
-    .progress-track {
-      background: #1a1a1a;
-      border-radius: 100px;
-      height: 8px;
-      overflow: hidden;
-      margin-bottom: 8px;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #FFD600, #ffb700);
-      border-radius: 100px;
-      transition: width 0.8s ease;
-    }
-    .level-checkpoints {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #444;
-    }
-    .level-checkpoints span.reached { color: #FFD600; }
-
-    /* TOPICS */
-    .topic-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .topic-tag {
-      background: #111;
-      border: 1px solid #222;
-      border-radius: 100px;
-      padding: 6px 14px;
-      font-size: 13px;
-      color: #ccc;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .topic-tag .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #FFD600;
-      display: inline-block;
-    }
-
-    /* PATTERN + NEXT STEP CARDS */
-    .insight-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 640px) { .insight-grid { grid-template-columns: 1fr; } }
-    .insight-card {
-      background: #111;
-      border: 1px solid #1e1e1e;
-      border-radius: 12px;
-      padding: 24px;
-    }
-    .insight-tag {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #FFD600;
-      margin-bottom: 10px;
-    }
-    .insight-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .insight-card p { font-size: 14px; color: #888; line-height: 1.6; }
-
-    /* GROWTH CHART */
-    .chart-wrap {
-      background: #111;
-      border: 1px solid #1e1e1e;
-      border-radius: 12px;
-      padding: 24px;
-    }
-    .chart-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 100px;
-      margin-bottom: 8px;
-    }
-    .chart-bar-wrap {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-    }
-    .chart-bar {
-      width: 100%;
-      background: #FFD600;
-      border-radius: 3px 3px 0 0;
-      transition: height 0.6s ease;
-      min-height: 4px;
-    }
-    .chart-label { font-size: 10px; color: #444; }
-
-    /* STREAK */
-    .streak-grid {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .streak-day {
-      width: 28px; height: 28px;
-      border-radius: 6px;
-      background: #1a1a1a;
-      border: 1px solid #222;
-    }
-    .streak-day.active { background: #FFD600; border-color: #FFD600; }
-    .streak-day.today { background: #FFD600; border-color: #fff; box-shadow: 0 0 0 2px #fff2; }
+    .stage-aware { background: rgba(150,150,255,0.1); color: #9999ff; border: 1px solid rgba(150,150,255,0.2); }
 
     /* CURRENT FOCUS */
-    .focus-block {
-      background: #0f0f00;
-      border: 1px solid rgba(255,214,0,0.2);
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
+    .focus-block { background: #0f0f00; border: 1px solid rgba(255,214,0,0.2); border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .focus-left { display: flex; flex-direction: column; gap: 4px; }
     .focus-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #FFD600; }
     .focus-title { font-size: 18px; font-weight: 800; color: #f4f4f4; }
     .focus-sub { font-size: 13px; color: #666; }
-    .focus-week {
-      background: rgba(255,214,0,0.1);
-      border: 1px solid rgba(255,214,0,0.2);
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #FFD600;
-      white-space: nowrap;
-    }
+    .focus-week { background: rgba(255,214,0,0.1); border: 1px solid rgba(255,214,0,0.2); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700; color: #FFD600; white-space: nowrap; }
 
-    /* ACTIVE TOPIC BADGE */
-    .topic-tag.active-topic {
-      background: rgba(255,214,0,0.1);
-      border-color: rgba(255,214,0,0.4);
-      color: #FFD600;
-      font-weight: 700;
-    }
-    .topic-tag.active-topic .dot { background: #FFD600; box-shadow: 0 0 6px #FFD600; }
-    .active-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #FFD600;
-      background: rgba(255,214,0,0.15);
-      padding: 2px 7px;
-      border-radius: 100px;
-      margin-left: 4px;
-    }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 24px 20px; position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: #FFD600; border-radius: 3px 0 0 3px; }
+    .stat-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+    .stat-value { font-size: 28px; font-weight: 800; color: #FFD600; line-height: 1; margin-bottom: 4px; }
+    .stat-sub { font-size: 13px; color: #555; }
 
-    /* TEST ME */
-    .test-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: transparent;
-      border: 1px solid rgba(255,214,0,0.4);
-      color: #FFD600;
-      font-size: 14px;
-      font-weight: 700;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-      font-family: inherit;
-    }
+    .section-title { font-size: 18px; font-weight: 700; color: #f4f4f4; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: space-between; }
+    .section { margin-bottom: 40px; }
+
+    .level-block { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+    .level-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+    .level-label { font-size: 13px; color: #888; }
+    .level-name { font-size: 20px; font-weight: 800; color: #FFD600; }
+    .level-fraction { font-size: 13px; color: #555; }
+    .progress-track { background: #1a1a1a; border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 8px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #FFD600, #ffb700); border-radius: 100px; }
+    .level-checkpoints { display: flex; justify-content: space-between; font-size: 11px; color: #444; }
+    .level-checkpoints span.reached { color: #FFD600; }
+
+    /* TOPICS */
+    .topic-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .topic-tag { background: #111; border: 1px solid #222; border-radius: 100px; padding: 6px 14px; font-size: 13px; color: #ccc; display: flex; align-items: center; gap: 6px; }
+    .topic-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: #FFD600; display: inline-block; }
+    .topic-tag.active-topic { background: rgba(255,214,0,0.1); border-color: rgba(255,214,0,0.4); color: #FFD600; font-weight: 700; }
+    .topic-tag.active-topic .dot { box-shadow: 0 0 6px #FFD600; }
+    .active-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #FFD600; background: rgba(255,214,0,0.15); padding: 2px 7px; border-radius: 100px; }
+    .score-badge { font-size: 10px; font-weight: 700; background: rgba(255,214,0,0.15); color: #FFD600; padding: 1px 6px; border-radius: 100px; }
+    .tested-check { color: #50c878; font-size: 11px; }
+
+    /* FOCUS MODE BAR */
+    .focus-mode-bar { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 12px; }
+    .focus-mode-bar span { font-size: 13px; color: #888; }
+    .focus-mode-btn { background: transparent; border: 1px solid rgba(255,214,0,0.3); color: #FFD600; font-size: 13px; font-weight: 700; padding: 7px 16px; border-radius: 7px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .focus-mode-btn:hover { background: rgba(255,214,0,0.08); border-color: #FFD600; }
+    .focus-mode-btn.active { background: rgba(255,214,0,0.15); border-color: #FFD600; }
+
+    .insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .insight-grid { grid-template-columns: 1fr; } }
+    .insight-card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 24px; }
+    .insight-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #FFD600; margin-bottom: 10px; }
+    .insight-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .insight-card p { font-size: 14px; color: #888; line-height: 1.6; }
+
+    .chart-wrap { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 24px; }
+    .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 100px; margin-bottom: 8px; }
+    .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .chart-bar { width: 100%; background: #FFD600; border-radius: 3px 3px 0 0; min-height: 4px; }
+    .chart-label { font-size: 10px; color: #444; }
+
+    .streak-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+    .streak-day { width: 28px; height: 28px; border-radius: 6px; background: #1a1a1a; border: 1px solid #222; }
+    .streak-day.active { background: #FFD600; border-color: #FFD600; }
+    .streak-day.today { background: #FFD600; border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+
+    /* TEST ME BUTTON */
+    .test-btn { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 1px solid rgba(255,214,0,0.4); color: #FFD600; font-size: 14px; font-weight: 700; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all 0.2s; flex-shrink: 0; }
     .test-btn:hover { background: rgba(255,214,0,0.08); border-color: #FFD600; }
 
     /* MODAL */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 24px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s;
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal {
-      background: #111;
-      border: 1px solid #222;
-      border-radius: 16px;
-      padding: 36px;
-      max-width: 540px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
-    .modal .modal-sub { font-size: 14px; color: #666; margin-bottom: 28px; }
-    .quiz-q {
-      margin-bottom: 20px;
-    }
-    .quiz-q p { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
-    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
-    .quiz-option {
-      background: #0f0f0f;
-      border: 1px solid #222;
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 14px;
-      color: #ccc;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      text-align: left;
-      font-family: inherit;
-    }
+    .modal { background: #111; border: 1px solid #222; border-radius: 16px; padding: 36px; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .modal-sub { font-size: 14px; color: #666; margin-bottom: 24px; }
+
+    /* TOPIC SELECT */
+    .topic-select-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .ts-pill { padding: 8px 14px; border-radius: 100px; border: 1px solid #222; background: #0f0f0f; font-size: 13px; color: #ccc; cursor: pointer; font-family: inherit; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .ts-pill:not(.locked):hover { border-color: #FFD600; color: #FFD600; }
+    .ts-pill.selected { background: rgba(255,214,0,0.1); border-color: #FFD600; color: #FFD600; font-weight: 700; }
+    .ts-pill.locked { opacity: 0.4; }
+    .unlock-nudge { display: none; background: #0f0f00; border: 1px solid rgba(255,214,0,0.2); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #aaa; align-items: center; justify-content: space-between; gap: 12px; }
+    .unlock-nudge.show { display: flex; }
+    .unlock-nudge a { background: #FFD600; color: #000; font-weight: 700; font-size: 12px; padding: 6px 14px; border-radius: 6px; text-decoration: none; white-space: nowrap; }
+
+    /* QUIZ */
+    .quiz-steps { display: flex; gap: 6px; margin-bottom: 20px; }
+    .quiz-step { flex: 1; height: 3px; border-radius: 3px; background: #1a1a1a; transition: background 0.3s; }
+    .quiz-step.done { background: #FFD600; }
+    .quiz-step.current { background: rgba(255,214,0,0.4); }
+    .quiz-q { margin-bottom: 4px; }
+    .quiz-q p { font-size: 15px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .quiz-option { background: #0f0f0f; border: 1px solid #222; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #ccc; cursor: pointer; transition: all 0.2s; text-align: left; font-family: inherit; }
     .quiz-option:hover { border-color: #FFD600; color: #fff; }
-    .quiz-option.selected { border-color: #FFD600; background: rgba(255,214,0,0.08); color: #FFD600; }
-    .quiz-submit {
-      width: 100%;
-      background: #FFD600;
-      color: #000;
-      font-weight: 700;
-      font-size: 15px;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 8px;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
+    .quiz-option.correct-ans { border-color: #50c878 !important; background: rgba(80,200,120,0.08) !important; color: #50c878 !important; pointer-events: none; }
+    .quiz-option.wrong-ans { border-color: #ff6060 !important; background: rgba(255,80,80,0.08) !important; color: #ff6060 !important; pointer-events: none; }
+    .quiz-option.disabled { pointer-events: none; opacity: 0.5; }
+    .answer-feedback { font-size: 12px; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; display: none; }
+    .answer-feedback.correct { background: rgba(80,200,120,0.1); color: #50c878; display: block; }
+    .answer-feedback.wrong { background: rgba(255,80,80,0.1); color: #ff6060; display: block; }
+    .quiz-submit { width: 100%; background: #FFD600; color: #000; font-weight: 700; font-size: 15px; padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
     .quiz-submit:hover { opacity: 0.85; }
-    .quiz-result {
-      display: none;
-      text-align: center;
-      padding: 20px 0;
-    }
-    .quiz-result.show { display: block; }
-    .quiz-result-badge {
-      display: inline-block;
-      padding: 6px 16px;
-      border-radius: 100px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-    .result-applying { background: rgba(80,200,120,0.15); color: #50c878; border: 1px solid rgba(80,200,120,0.3); }
-    .result-stuck { background: rgba(255,214,0,0.1); color: #FFD600; border: 1px solid rgba(255,214,0,0.3); }
-    .quiz-result h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
-    .quiz-result p { font-size: 14px; color: #888; margin-bottom: 24px; line-height: 1.6; }
-    .modal-close {
-      background: transparent;
-      border: 1px solid #333;
-      color: #888;
-      font-size: 14px;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
+    .quiz-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* RESULT CARD */
+    .result-card { padding: 4px 0; }
+    .result-score-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+    .result-score-num { font-size: 56px; font-weight: 900; color: #FFD600; line-height: 1; }
+    .result-score-label { font-size: 14px; color: #666; }
+    .result-stage-pill { display: inline-block; padding: 4px 14px; border-radius: 100px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+    .result-identity { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .result-action { font-size: 14px; color: #888; margin-bottom: 24px; line-height: 1.6; }
+    .result-cta { display: block; width: 100%; text-align: center; background: #FFD600; color: #000; font-weight: 700; font-size: 15px; padding: 14px; border-radius: 10px; text-decoration: none; margin-bottom: 12px; }
+    .modal-close { width: 100%; background: transparent; border: 1px solid #333; color: #888; font-size: 14px; padding: 10px; border-radius: 8px; cursor: pointer; font-family: inherit; }
     .modal-close:hover { border-color: #555; color: #ccc; }
 
-    /* CTA BANNER */
-    .upgrade-banner {
-      background: linear-gradient(135deg, #111 0%, #151200 100%);
-      border: 1px solid rgba(255,214,0,0.25);
-      border-radius: 16px;
-      padding: 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 24px;
-      margin-top: 40px;
-    }
+    .upgrade-banner { background: linear-gradient(135deg, #111 0%, #151200 100%); border: 1px solid rgba(255,214,0,0.25); border-radius: 16px; padding: 32px; display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 40px; }
     .upgrade-banner h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
     .upgrade-banner p { font-size: 14px; color: #888; }
-    .upgrade-btn {
-      background: #FFD600;
-      color: #000;
-      font-weight: 700;
-      padding: 14px 28px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 15px;
-      white-space: nowrap;
-      transition: opacity 0.2s;
-      flex-shrink: 0;
-    }
-    .upgrade-btn:hover { opacity: 0.85; }
+    .upgrade-btn { background: #FFD600; color: #000; font-weight: 700; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-size: 15px; white-space: nowrap; flex-shrink: 0; }
 
     @media (max-width: 640px) {
       .upgrade-banner { flex-direction: column; }
       .stat-grid { grid-template-columns: 1fr 1fr; }
+      .focus-block { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -441,17 +166,26 @@
   <div class="nav-links">
     <a href="/">Resources</a>
     <a href="/dashboard" class="active">Dashboard</a>
-    <a href="/" class="nav-cta">Get Access →</a>
+    <a href="/" class="nav-cta">Get Access &rarr;</a>
   </div>
 </nav>
 
 <div class="page">
 
-  <!-- HEADER -->
   <div class="page-header">
     <h1>Your Discipleship Dashboard</h1>
     <p>Tracking your growth, patterns, and alignment over time.</p>
-    <span class="stage-badge stage-hungry">Stage: Hungry</span>
+    <span class="stage-badge stage-hungry" id="headerStage">Stage: Hungry</span>
+  </div>
+
+  <!-- CURRENT FOCUS -->
+  <div class="focus-block">
+    <div class="focus-left">
+      <span class="focus-eyebrow">Current Focus</span>
+      <span class="focus-title" id="focusTitle">Faith Foundations</span>
+      <span class="focus-sub">Understanding how faith actually works &mdash; not just believing harder</span>
+    </div>
+    <div class="focus-week" id="focusWeek">Week 2 of 4</div>
   </div>
 
   <!-- STAT CARDS -->
@@ -463,7 +197,7 @@
     </div>
     <div class="stat-card">
       <div class="stat-label">Alignment Score</div>
-      <div class="stat-value">74%</div>
+      <div class="stat-value" id="alignScore">74%</div>
       <div class="stat-sub">up 8% this week</div>
     </div>
     <div class="stat-card">
@@ -472,9 +206,9 @@
       <div class="stat-sub">vs last 30 days</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Topics Engaged</div>
-      <div class="stat-value">7</div>
-      <div class="stat-sub">faith, sin, soul, prayer...</div>
+      <div class="stat-label">Topics Tested</div>
+      <div class="stat-value" id="topicsTestedCount">0</div>
+      <div class="stat-sub">of 6 available</div>
     </div>
   </div>
 
@@ -487,65 +221,45 @@
       </div>
       <div class="level-fraction">47 / 100 points to 60-Fold</div>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" style="width: 47%"></div>
-    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:47%"></div></div>
     <div class="level-checkpoints">
-      <span class="reached">◆ 30-Fold</span>
-      <span>◆ 60-Fold</span>
-      <span>◆ 100-Fold</span>
+      <span class="reached">&#9670; 30-Fold</span>
+      <span>&#9670; 60-Fold</span>
+      <span>&#9670; 100-Fold</span>
     </div>
   </div>
 
   <!-- STREAK -->
   <div class="section">
-    <div class="section-title">Consistency — Last 30 Days</div>
+    <div class="section-title">Consistency &mdash; Last 30 Days</div>
     <div class="streak-grid">
-      <!-- mock: 12 active days out of 30 -->
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day active"></div>
-      <div class="streak-day today"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
-      <div class="streak-day"></div>
+      <div class="streak-day"></div><div class="streak-day"></div><div class="streak-day"></div>
+      <div class="streak-day active"></div><div class="streak-day active"></div><div class="streak-day"></div>
+      <div class="streak-day active"></div><div class="streak-day active"></div><div class="streak-day active"></div>
+      <div class="streak-day"></div><div class="streak-day active"></div><div class="streak-day active"></div>
+      <div class="streak-day active"></div><div class="streak-day active"></div><div class="streak-day active"></div>
+      <div class="streak-day active"></div><div class="streak-day active"></div><div class="streak-day active"></div>
+      <div class="streak-day active"></div><div class="streak-day active"></div><div class="streak-day active"></div>
+      <div class="streak-day active"></div><div class="streak-day active"></div><div class="streak-day today"></div>
+      <div class="streak-day"></div><div class="streak-day"></div><div class="streak-day"></div>
+      <div class="streak-day"></div><div class="streak-day"></div><div class="streak-day"></div>
     </div>
   </div>
 
   <!-- TOPICS -->
   <div class="section">
-    <div class="section-title">Topics You've Engaged</div>
-    <div class="topic-grid">
-      <div class="topic-tag active-topic"><span class="dot"></span> Faith <span class="active-label">Active</span></div>
-      <div class="topic-tag"><span class="dot"></span> Sin</div>
-      <div class="topic-tag"><span class="dot"></span> Soul</div>
-      <div class="topic-tag"><span class="dot"></span> Prayer</div>
-      <div class="topic-tag"><span class="dot"></span> Kingdom</div>
-      <div class="topic-tag"><span class="dot"></span> Transformation</div>
-      <div class="topic-tag"><span class="dot"></span> Identity</div>
+    <div class="section-title">Topics You've Engaged &amp; Tested</div>
+    <div class="topic-grid" id="topicGrid">
+      <div class="topic-tag active-topic"><span class="dot"></span> Faith <span class="active-label">Active</span><span class="score-badge" id="faith-score" style="display:none"></span><span class="tested-check" id="faith-check" style="display:none">&#10003;</span></div>
+      <div class="topic-tag"><span class="dot"></span> Sin<span class="score-badge" id="sin-score" style="display:none"></span><span class="tested-check" id="sin-check" style="display:none">&#10003;</span></div>
+      <div class="topic-tag"><span class="dot"></span> Soul<span class="score-badge" id="soul-score" style="display:none"></span><span class="tested-check" id="soul-check" style="display:none">&#10003;</span></div>
+      <div class="topic-tag"><span class="dot"></span> Prayer<span class="score-badge" id="prayer-score" style="display:none"></span><span class="tested-check" id="prayer-check" style="display:none">&#10003;</span></div>
+      <div class="topic-tag"><span class="dot"></span> Kingdom<span class="score-badge" id="kingdom-score" style="display:none"></span><span class="tested-check" id="kingdom-check" style="display:none">&#10003;</span></div>
+      <div class="topic-tag"><span class="dot"></span> Identity<span class="score-badge" id="identity-score" style="display:none"></span><span class="tested-check" id="identity-check" style="display:none">&#10003;</span></div>
+    </div>
+    <div class="focus-mode-bar">
+      <span id="focusModeLabel">Focus Mode: lock into one topic for 7 days of focused practice</span>
+      <button class="focus-mode-btn" id="focusModeBtn" onclick="toggleFocusMode()">&#127919; Focus Mode</button>
     </div>
   </div>
 
@@ -554,38 +268,14 @@
     <div class="section-title">Growth Over Time</div>
     <div class="chart-wrap">
       <div class="chart-bars">
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:30%"></div>
-          <span class="chart-label">W1</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:42%"></div>
-          <span class="chart-label">W2</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:55%"></div>
-          <span class="chart-label">W3</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:48%"></div>
-          <span class="chart-label">W4</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:63%"></div>
-          <span class="chart-label">W5</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:70%"></div>
-          <span class="chart-label">W6</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:78%"></div>
-          <span class="chart-label">W7</span>
-        </div>
-        <div class="chart-bar-wrap">
-          <div class="chart-bar" style="height:85%"></div>
-          <span class="chart-label">W8</span>
-        </div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:30%"></div><span class="chart-label">W1</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:42%"></div><span class="chart-label">W2</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:55%"></div><span class="chart-label">W3</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:48%"></div><span class="chart-label">W4</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:63%"></div><span class="chart-label">W5</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:70%"></div><span class="chart-label">W6</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:78%"></div><span class="chart-label">W7</span></div>
+        <div class="chart-bar-wrap"><div class="chart-bar" style="height:85%"></div><span class="chart-label">W8</span></div>
       </div>
       <div style="font-size:12px;color:#444;margin-top:4px">Alignment score by week</div>
     </div>
@@ -593,7 +283,10 @@
 
   <!-- PATTERN + NEXT STEP -->
   <div class="section">
-    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">Your Pattern &amp; Next Step<button class="test-btn" onclick="openModal()">&#9889; Test Me</button></div>
+    <div class="section-title">
+      Your Pattern &amp; Next Step
+      <button class="test-btn" onclick="openModal()">&#9889; Measure Your Understanding</button>
+    </div>
     <div class="insight-grid">
       <div class="insight-card">
         <div class="insight-tag">What's holding you back</div>
@@ -613,99 +306,282 @@
     <div class="section-title">Dominant Conversation Pattern</div>
     <div class="insight-card">
       <div class="insight-tag">Pattern detected</div>
-      <h3>HUNGER — Actively seeking, ready to grow</h3>
-      <p>Your questions consistently push toward deeper understanding. You're not stuck — you're accelerating. The next level requires moving from asking to applying.</p>
+      <h3>HUNGER &mdash; Actively seeking, ready to grow</h3>
+      <p>Your questions consistently push toward deeper understanding. You're not stuck &mdash; you're accelerating. The next level requires moving from asking to applying.</p>
     </div>
   </div>
 
-  <!-- UPGRADE BANNER -->
   <div class="upgrade-banner">
     <div>
       <h2>Ready to unlock full tracking?</h2>
       <p>Join the Discipleship Circle to get persistent growth tracking, pattern reports, and deeper access.</p>
     </div>
-    <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="upgrade-btn" target="_blank">
-      Join — $7/month →
-    </a>
+    <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="upgrade-btn" target="_blank">Join &mdash; $7/month &rarr;</a>
   </div>
 
 </div>
-
 
 <!-- TEST ME MODAL -->
 <div class="modal-overlay" id="testModal">
   <div class="modal">
-    <h2>Test Your Understanding</h2>
-    <p class="modal-sub">Faith Foundations — 3 questions. Answer honestly.</p>
-    <div id="quizQuestions">
-      <div class="quiz-q">
-        <p>1. What is faith actually based on?</p>
-        <div class="quiz-options">
-          <button class="quiz-option" onclick="selectOption(this)">A feeling of confidence</button>
-          <button class="quiz-option" onclick="selectOption(this)">The Word of God — what He actually said</button>
-          <button class="quiz-option" onclick="selectOption(this)">How many times you've prayed</button>
-        </div>
+
+    <!-- SCREEN 1: TOPIC SELECT -->
+    <div id="screenSelect">
+      <h2>Measure Your Understanding</h2>
+      <p class="modal-sub">Choose a topic. 5 questions. Immediate feedback. Score maps to your stage.</p>
+      <div class="topic-select-grid">
+        <button class="ts-pill" onclick="selectTopic('faith',this)">&#128218; Faith</button>
+        <button class="ts-pill" onclick="selectTopic('sin',this)">&#128293; Sin</button>
+        <button class="ts-pill" onclick="selectTopic('soul',this)">&#127775; Soul</button>
+        <button class="ts-pill" onclick="selectTopic('prayer',this)">&#128591; Prayer</button>
+        <button class="ts-pill" onclick="selectTopic('kingdom',this)">&#128081; Kingdom</button>
+        <button class="ts-pill" onclick="selectTopic('identity',this)">&#128100; Identity</button>
+        <button class="ts-pill locked" onclick="showUnlock(this)">&#128274; Salvation</button>
+        <button class="ts-pill locked" onclick="showUnlock(this)">&#128274; Finances</button>
+        <button class="ts-pill locked" onclick="showUnlock(this)">&#128274; Relationships</button>
+        <button class="ts-pill locked" onclick="showUnlock(this)">&#128274; Purpose</button>
       </div>
-      <div class="quiz-q">
-        <p>2. What does renewing your mind require?</p>
-        <div class="quiz-options">
-          <button class="quiz-option" onclick="selectOption(this)">Positive thinking and motivation</button>
-          <button class="quiz-option" onclick="selectOption(this)">Consistent exposure to the Word and new patterns</button>
-          <button class="quiz-option" onclick="selectOption(this)">Attending church more often</button>
-        </div>
+      <div class="unlock-nudge" id="unlockNudge">
+        <span>This topic unlocks with Discipleship access.</span>
+        <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Unlock &rarr;</a>
       </div>
-      <div class="quiz-q">
-        <p>3. What happens when faith is not connected to the Word?</p>
-        <div class="quiz-options">
-          <button class="quiz-option" onclick="selectOption(this)">It still works if your heart is right</button>
-          <button class="quiz-option" onclick="selectOption(this)">It produces nothing — faith needs a source</button>
-          <button class="quiz-option" onclick="selectOption(this)">God fills in the gap automatically</button>
-        </div>
-      </div>
-      <button class="quiz-submit" onclick="submitQuiz()">Submit →</button>
+      <button class="quiz-submit" id="startBtn" onclick="startTest()" disabled style="opacity:.4">Start Test &rarr;</button>
     </div>
-    <div class="quiz-result" id="quizResult">
-      <div class="quiz-result-badge result-applying" id="resultBadge">Understanding confirmed</div>
-      <h3 id="resultTitle">You're understanding — but not applying yet</h3>
-      <p id="resultText">You know the right answers. The gap is between what you know and what you're consistently living. That's the next level of work.</p>
-      <button class="modal-close" onclick="closeModal()">Close</button>
+
+    <!-- SCREEN 2: QUIZ -->
+    <div id="screenQuiz" style="display:none">
+      <div id="quizTopicLabel" style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#FFD600;margin-bottom:6px"></div>
+      <h2 id="quizTitle" style="margin-bottom:4px"></h2>
+      <p class="modal-sub" id="quizProgress"></p>
+      <div class="quiz-steps" id="quizSteps"></div>
+      <div id="quizBody"></div>
     </div>
+
+    <!-- SCREEN 3: RESULT -->
+    <div id="screenResult" style="display:none">
+      <div class="result-card">
+        <div class="result-score-row">
+          <div class="result-score-num" id="rScore">0</div>
+          <div class="result-score-label">/ 100</div>
+        </div>
+        <div class="result-stage-pill stage-hungry" id="rPill"></div>
+        <div class="result-identity" id="rIdentity"></div>
+        <div class="result-action" id="rAction"></div>
+        <a href="/dashboard" class="result-cta">Track My Growth &rarr;</a>
+        <button class="modal-close" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+
   </div>
 </div>
+
 <script>
+// ── QUIZ DATA ──────────────────────────────────────────────────────────────
+const QD = {
+  faith: { title: 'Faith Foundations', questions: [
+    { q: 'What is faith based on?', opts: ['A feeling of confidence','The Word of God','How often you pray','Your past experiences'], c: 1, fix: 'Faith comes from the Word of God, not feelings or frequency of prayer.' },
+    { q: 'What does "faith cometh by hearing" mean?', opts: ['Listen to more sermons','Faith grows from engaging with the Word','Hearing from other believers','Prayer produces faith automatically'], c: 1, fix: 'Hearing refers to the Word of God. That is where faith is produced.' },
+    { q: 'What happens when faith is disconnected from the Word?', opts: ['It still works if sincere','God fills the gap','It produces nothing','It weakens slowly'], c: 2, fix: 'Faith without the Word has no source. It produces nothing.' },
+    { q: 'What is the correct order of faith?', opts: ['See it then believe','Feel it then confess','Believe it then see it','Ask then receive'], c: 2, fix: 'You believe before you see. That is how faith operates.' },
+    { q: 'Faith operates like:', opts: ['A wish','A feeling','A law','A request'], c: 2, fix: 'Faith has laws, boundaries, and structure. It is not random or emotional.' }
+  ]},
+  sin: { title: 'Understanding Sin', questions: [
+    { q: 'What is sin beyond wrong behavior?', opts: ['A mistake','A presence and force inside you','A bad habit','An external influence'], c: 1, fix: 'Sin is an inward force with personality, not just bad actions.' },
+    { q: 'Why does a saved person still struggle with sin?', opts: ['They were not truly saved','The soul takes time to renew','God allows it as a test','Sin no longer affects the saved'], c: 1, fix: 'Salvation changes your spirit. Your soul must be renewed through the Word.' },
+    { q: 'What actually breaks the pattern of sin?', opts: ['Trying harder','Praying more','Renewing the mind through the Word','Accountability groups'], c: 2, fix: 'Willpower does not break sin. Renewal of the mind does.' },
+    { q: 'What did Paul mean by "the law of sin"?', opts: ['God permits sin','Sin follows predictable patterns','The Old Testament law','Temptation is unavoidable'], c: 1, fix: 'Sin is patterned and predictable. Understanding the pattern is how you break it.' },
+    { q: 'What is the root of continued sin after salvation?', opts: ['Weak willpower','Unrenewed soul feeding the old identity','Lack of prayer','Demonic oppression'], c: 1, fix: 'The old self still operates in an unrenewed soul. That is the war you are fighting.' }
+  ]},
+  soul: { title: 'Soul and Mind', questions: [
+    { q: 'What is the soul composed of?', opts: ['Body and spirit','Mind, will, and emotions','Heart and conscience','Memory and personality'], c: 1, fix: 'The soul is your mind, will, and emotions. It is what makes you you.' },
+    { q: 'What does salvation change immediately?', opts: ['Your soul','Your mind and habits','Your spirit and heart','Your personality'], c: 2, fix: 'Salvation changes your spirit instantly. The soul must be renewed over time.' },
+    { q: 'What renews the soul?', opts: ['Church attendance','Positive thinking','Consistent exposure to the Word','Emotional healing'], c: 2, fix: 'The soul is renewed by the Word of God, not willpower or environment.' },
+    { q: 'Why does the soul resist transformation?', opts: ['It is inherently evil','It still identifies with the old life','God designed it that way','Lack of faith'], c: 1, fix: 'The soul remembers the old identity and answers to the old name until retrained.' },
+    { q: 'What does "possess your soul" mean?', opts: ['Control emotions only','Take authority over your mind, will, and desires','Reject the flesh','Pray in the Spirit'], c: 1, fix: 'You must actively govern your soul rather than let it govern you.' }
+  ]},
+  prayer: { title: 'Prayer and Alignment', questions: [
+    { q: 'What is the primary purpose of prayer?', opts: ['Getting what you want','Expressing emotions','Alignment with God','Spiritual warfare'], c: 2, fix: 'Prayer is about aligning with God. Requests are secondary to relationship.' },
+    { q: 'Who does God hear according to John 9:31?', opts: ['Everyone who prays sincerely','Worshipers of God who do His will','Only those without sin','Believers who fast'], c: 1, fix: 'God hears those who worship Him and walk in His will, not every prayer by default.' },
+    { q: 'What is the difference between asking and aligning in prayer?', opts: ['One is louder','Aligning means agreeing with what God said, not just requesting','Asking is Old Testament','No difference'], c: 1, fix: 'Asking without aligning produces nothing. Prayer must be rooted in the Word.' },
+    { q: 'Why do some prayers go unanswered?', opts: ['God is testing you','Lack of enough faith','Prayers outside God\'s will and condition do not get through','God is silent sometimes'], c: 2, fix: 'Unanswered prayer usually reflects a condition or alignment problem, not a faith volume issue.' },
+    { q: 'Prayer is fundamentally for:', opts: ['Feelings','Alignment','Bargaining','Emotional release'], c: 1, fix: 'Prayer is not therapy. It is positioning yourself in agreement with God.' }
+  ]},
+  kingdom: { title: 'Kingdom of God', questions: [
+    { q: 'What is the Kingdom of God?', opts: ['Heaven only','A future promise only','God\'s reign active now and in eternity','A church denomination'], c: 2, fix: 'The Kingdom is present reality, not just future hope. God\'s rule is now.' },
+    { q: 'What does "seek first the Kingdom" require?', opts: ['Going to church first','Making God priority in every area of life','Giving tithes first','Reading the Bible daily'], c: 1, fix: 'It means structuring your entire life around God\'s authority, not just spiritual activities.' },
+    { q: 'Kingdom authority belongs to:', opts: ['Pastors and leaders only','Whoever prays the most','Disciples who live under God\'s authority','Everyone by default'], c: 2, fix: 'Authority flows from submission. You cannot exercise Kingdom authority outside Kingdom alignment.' },
+    { q: 'What blocks Kingdom living?', opts: ['Not enough faith','Living for self while claiming God','Lack of church community','Insufficient prayer'], c: 1, fix: 'Self-rule and Kingdom rule cannot coexist. One must yield to the other.' },
+    { q: 'The Kingdom advances through:', opts: ['Political power','Loud proclamation','Transformation of individual lives under God\'s authority','Mass evangelism'], c: 2, fix: 'The Kingdom spreads person by person as people submit and transform.' }
+  ]},
+  identity: { title: 'Identity in God', questions: [
+    { q: 'What determines your true identity?', opts: ['Your past','Your feelings','What God says about you','Your accomplishments'], c: 2, fix: 'Your identity is defined by what God created and said, not your history or emotions.' },
+    { q: 'What happens to your identity when saved?', opts: ['Nothing immediately','You become a new creature in spirit','Your personality changes','You receive a new soul'], c: 1, fix: 'You are a new creature in spirit. The soul must catch up through renewal.' },
+    { q: 'Why do believers still feel like their old self?', opts: ['They were not truly saved','The soul has not been retrained','God is testing them','Lack of church community'], c: 1, fix: 'The soul still identifies with the old name until it is consistently renewed.' },
+    { q: 'What is the danger of self-definition?', opts: ['It limits confidence','It replaces God\'s truth with your own perception','It builds pride','No danger'], c: 1, fix: 'When you define yourself by your own lens, you build on a foundation that cannot hold.' },
+    { q: 'Living from God-given identity looks like:', opts: ['Never struggling','Feeling confident always','Acting from what God says regardless of how you feel','Only showing your best side'], c: 2, fix: 'Identity is not performance. It is operating from truth even when feelings say otherwise.' }
+  ]}
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let activeTopic = null;
+let currentQ = 0;
+let score = 0;
+let focusTopic = localStorage.getItem('gp73_focus') || null;
+let scores = JSON.parse(localStorage.getItem('gp73_scores') || '{}');
+
+// ── MODAL CONTROL ──────────────────────────────────────────────────────────
 function openModal() {
+  resetModal();
   document.getElementById('testModal').classList.add('open');
-  document.getElementById('quizQuestions').style.display = 'block';
-  document.getElementById('quizResult').classList.remove('show');
-  document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
-}
-function closeModal() { document.getElementById('testModal').classList.remove('open'); }
-document.getElementById('testModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
-function selectOption(el) {
-  el.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function submitQuiz() {
-  const selected = document.querySelectorAll('.quiz-option.selected').length;
-  document.getElementById('quizQuestions').style.display = 'none';
-  const res = document.getElementById('quizResult');
-  res.classList.add('show');
-  const badge = document.getElementById('resultBadge');
-  const title = document.getElementById('resultTitle');
-  const text = document.getElementById('resultText');
-  if (selected >= 2) {
-    badge.className = 'quiz-result-badge result-applying';
-    badge.textContent = 'Understanding confirmed';
-    title.textContent = "You're understanding — but not applying yet";
-    text.textContent = "You know the right answers. The gap is between what you know and what you're consistently living. That's the next level of work.";
-  } else {
-    badge.className = 'quiz-result-badge result-stuck';
-    badge.textContent = 'Gap detected';
-    title.textContent = "There's a belief gap here";
-    text.textContent = "Some answers show you're still working from an old framework. Go back through the Faith Foundations teaching before moving to the next topic.";
+  if (focusTopic && QD[focusTopic]) {
+    document.querySelectorAll('.ts-pill:not(.locked)').forEach(p => {
+      if (p.textContent.toLowerCase().includes(focusTopic)) selectTopic(focusTopic, p);
+    });
   }
 }
-</script>
+function closeModal() { document.getElementById('testModal').classList.remove('open'); }
+document.getElementById('testModal').addEventListener('click', e => { if (e.target === document.getElementById('testModal')) closeModal(); });
+function resetModal() {
+  activeTopic = null; currentQ = 0; score = 0;
+  show('screenSelect'); hide('screenQuiz'); hide('screenResult');
+  document.querySelectorAll('.ts-pill').forEach(p => p.classList.remove('selected'));
+  document.getElementById('unlockNudge').classList.remove('show');
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').style.opacity = '.4';
+}
+function show(id) { document.getElementById(id).style.display = 'block'; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
 
+// ── TOPIC SELECTION ────────────────────────────────────────────────────────
+function selectTopic(topic, el) {
+  document.querySelectorAll('.ts-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  activeTopic = topic;
+  document.getElementById('unlockNudge').classList.remove('show');
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('startBtn').style.opacity = '1';
+}
+function showUnlock(el) {
+  document.querySelectorAll('.ts-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('unlockNudge').classList.add('show');
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').style.opacity = '.4';
+}
+
+// ── QUIZ ───────────────────────────────────────────────────────────────────
+function startTest() {
+  if (!activeTopic) return;
+  hide('screenSelect'); show('screenQuiz');
+  const d = QD[activeTopic];
+  document.getElementById('quizTopicLabel').textContent = activeTopic.charAt(0).toUpperCase() + activeTopic.slice(1) + ' Track';
+  document.getElementById('quizTitle').textContent = d.title + ' Test';
+  const steps = document.getElementById('quizSteps');
+  steps.innerHTML = d.questions.map((_, i) => '<div class="quiz-step" id="qs' + i + '"></div>').join('');
+  renderQ();
+}
+
+function renderQ() {
+  const d = QD[activeTopic];
+  const q = d.questions[currentQ];
+  document.getElementById('quizProgress').textContent = 'Question ' + (currentQ+1) + ' of ' + d.questions.length;
+  d.questions.forEach((_, i) => {
+    const el = document.getElementById('qs'+i);
+    el.className = 'quiz-step' + (i < currentQ ? ' done' : i === currentQ ? ' current' : '');
+  });
+  document.getElementById('quizBody').innerHTML =
+    '<div class="quiz-q"><p>' + q.q + '</p>' +
+    '<div class="quiz-options">' + q.opts.map((o, i) => '<button class="quiz-option" onclick="answerQ(' + i + ',this)">' + o + '</button>').join('') + '</div>' +
+    '<div class="answer-feedback" id="fb"></div></div>';
+}
+
+function answerQ(idx, el) {
+  const q = QD[activeTopic].questions[currentQ];
+  document.querySelectorAll('.quiz-option').forEach(o => o.setAttribute('onclick', ''));
+  const fb = document.getElementById('fb');
+  if (idx === q.c) {
+    el.classList.add('correct-ans');
+    fb.textContent = '\u2713 Correct.'; fb.className = 'answer-feedback correct';
+    score += 20;
+  } else {
+    el.classList.add('wrong-ans');
+    document.querySelectorAll('.quiz-option')[q.c].classList.add('correct-ans');
+    fb.textContent = '\u2717 ' + q.fix; fb.className = 'answer-feedback wrong';
+  }
+  setTimeout(() => { currentQ < QD[activeTopic].questions.length - 1 ? (currentQ++, renderQ()) : showResult(); }, 1500);
+}
+
+// ── RESULT ─────────────────────────────────────────────────────────────────
+function showResult() {
+  hide('screenQuiz'); show('screenResult');
+  let stage, cls, identity, action;
+  if (score <= 40) { stage='STUCK'; cls='stage-stuck'; identity='You have foundational gaps here. More exposure to the source material is needed before moving forward.'; action='Go back through the core teaching on this topic. Do not move on yet.'; }
+  else if (score <= 60) { stage='AWARE'; cls='stage-aware'; identity='You have a surface understanding but are not yet grounded in the depth of this truth.'; action='Review what you got wrong. Engage with the topic for 3 more days before testing again.'; }
+  else if (score <= 80) { stage='HUNGRY'; cls='stage-hungry'; identity='You understand the truth, but consistency is the gap between where you are and where you need to be.'; action='Pick one principle from this topic and apply it this week. Come back and test again.'; }
+  else { stage='GROWING'; cls='stage-growing'; identity='You are aligned in this area. The knowledge is there and it is beginning to show in how you live.'; action='Move to the next topic, or go deeper through Discipleship access.'; }
+
+  document.getElementById('rScore').textContent = score;
+  const pill = document.getElementById('rPill');
+  pill.textContent = stage; pill.className = 'result-stage-pill ' + cls;
+  document.getElementById('rIdentity').textContent = identity;
+  document.getElementById('rAction').textContent = action;
+
+  // Persist score + update dashboard
+  if (!scores[activeTopic]) scores[activeTopic] = [];
+  scores[activeTopic].push(score);
+  localStorage.setItem('gp73_scores', JSON.stringify(scores));
+  updateBadge(activeTopic, score);
+  updateTestedCount();
+}
+
+function updateBadge(topic, pct) {
+  const s = document.getElementById(topic + '-score');
+  const c = document.getElementById(topic + '-check');
+  if (s) { s.textContent = pct + '%'; s.style.display = 'inline'; }
+  if (c) c.style.display = 'inline';
+}
+function updateTestedCount() {
+  const count = Object.keys(scores).filter(k => scores[k] && scores[k].length).length;
+  const el = document.getElementById('topicsTestedCount');
+  if (el) el.textContent = count;
+}
+
+// ── FOCUS MODE ─────────────────────────────────────────────────────────────
+function toggleFocusMode() {
+  const btn = document.getElementById('focusModeBtn');
+  const lbl = document.getElementById('focusModeLabel');
+  if (focusTopic) {
+    focusTopic = null;
+    localStorage.removeItem('gp73_focus');
+    btn.classList.remove('active');
+    btn.textContent = '\uD83C\uDFAF Focus Mode';
+    lbl.textContent = 'Focus Mode: lock into one topic for 7 days of focused practice';
+  } else {
+    const active = document.querySelector('.topic-tag.active-topic');
+    const topic = active ? Object.keys(QD).find(k => active.textContent.toLowerCase().includes(k)) : null;
+    if (!topic) { alert('No active topic detected. Test a topic first to set your focus.'); return; }
+    focusTopic = topic;
+    localStorage.setItem('gp73_focus', focusTopic);
+    btn.classList.add('active');
+    btn.textContent = '\uD83C\uDFAF Focused: ' + focusTopic.charAt(0).toUpperCase() + focusTopic.slice(1);
+    lbl.textContent = 'Locked for 7 days. All tests will use this topic.';
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  Object.entries(scores).forEach(([topic, arr]) => {
+    if (arr && arr.length) updateBadge(topic, arr[arr.length - 1]);
+  });
+  updateTestedCount();
+  if (focusTopic) {
+    const btn = document.getElementById('focusModeBtn');
+    const lbl = document.getElementById('focusModeLabel');
+    btn.classList.add('active');
+    btn.textContent = '\uD83C\uDFAF Focused: ' + focusTopic.charAt(0).toUpperCase() + focusTopic.slice(1);
+    lbl.textContent = 'Locked for 7 days. All tests will use this topic.';
+  }
+});
+</script>
 </body>
 </html>
