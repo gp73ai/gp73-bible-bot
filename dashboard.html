@@ -237,6 +237,165 @@
     .streak-day.active { background: #FFD600; border-color: #FFD600; }
     .streak-day.today { background: #FFD600; border-color: #fff; box-shadow: 0 0 0 2px #fff2; }
 
+    /* CURRENT FOCUS */
+    .focus-block {
+      background: #0f0f00;
+      border: 1px solid rgba(255,214,0,0.2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .focus-left { display: flex; flex-direction: column; gap: 4px; }
+    .focus-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #FFD600; }
+    .focus-title { font-size: 18px; font-weight: 800; color: #f4f4f4; }
+    .focus-sub { font-size: 13px; color: #666; }
+    .focus-week {
+      background: rgba(255,214,0,0.1);
+      border: 1px solid rgba(255,214,0,0.2);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFD600;
+      white-space: nowrap;
+    }
+
+    /* ACTIVE TOPIC BADGE */
+    .topic-tag.active-topic {
+      background: rgba(255,214,0,0.1);
+      border-color: rgba(255,214,0,0.4);
+      color: #FFD600;
+      font-weight: 700;
+    }
+    .topic-tag.active-topic .dot { background: #FFD600; box-shadow: 0 0 6px #FFD600; }
+    .active-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #FFD600;
+      background: rgba(255,214,0,0.15);
+      padding: 2px 7px;
+      border-radius: 100px;
+      margin-left: 4px;
+    }
+
+    /* TEST ME */
+    .test-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid rgba(255,214,0,0.4);
+      color: #FFD600;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      font-family: inherit;
+    }
+    .test-btn:hover { background: rgba(255,214,0,0.08); border-color: #FFD600; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 36px;
+      max-width: 540px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .modal .modal-sub { font-size: 14px; color: #666; margin-bottom: 28px; }
+    .quiz-q {
+      margin-bottom: 20px;
+    }
+    .quiz-q p { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-option {
+      background: #0f0f0f;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #ccc;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-align: left;
+      font-family: inherit;
+    }
+    .quiz-option:hover { border-color: #FFD600; color: #fff; }
+    .quiz-option.selected { border-color: #FFD600; background: rgba(255,214,0,0.08); color: #FFD600; }
+    .quiz-submit {
+      width: 100%;
+      background: #FFD600;
+      color: #000;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 8px;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .quiz-submit:hover { opacity: 0.85; }
+    .quiz-result {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+    .quiz-result.show { display: block; }
+    .quiz-result-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .result-applying { background: rgba(80,200,120,0.15); color: #50c878; border: 1px solid rgba(80,200,120,0.3); }
+    .result-stuck { background: rgba(255,214,0,0.1); color: #FFD600; border: 1px solid rgba(255,214,0,0.3); }
+    .quiz-result h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+    .quiz-result p { font-size: 14px; color: #888; margin-bottom: 24px; line-height: 1.6; }
+    .modal-close {
+      background: transparent;
+      border: 1px solid #333;
+      color: #888;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .modal-close:hover { border-color: #555; color: #ccc; }
+
     /* CTA BANNER */
     .upgrade-banner {
       background: linear-gradient(135deg, #111 0%, #151200 100%);
@@ -380,7 +539,7 @@
   <div class="section">
     <div class="section-title">Topics You've Engaged</div>
     <div class="topic-grid">
-      <div class="topic-tag"><span class="dot"></span> Faith</div>
+      <div class="topic-tag active-topic"><span class="dot"></span> Faith <span class="active-label">Active</span></div>
       <div class="topic-tag"><span class="dot"></span> Sin</div>
       <div class="topic-tag"><span class="dot"></span> Soul</div>
       <div class="topic-tag"><span class="dot"></span> Prayer</div>
@@ -434,7 +593,7 @@
 
   <!-- PATTERN + NEXT STEP -->
   <div class="section">
-    <div class="section-title">Your Pattern & Next Step</div>
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">Your Pattern &amp; Next Step<button class="test-btn" onclick="openModal()">&#9889; Test Me</button></div>
     <div class="insight-grid">
       <div class="insight-card">
         <div class="insight-tag">What's holding you back</div>
@@ -471,6 +630,82 @@
   </div>
 
 </div>
+
+
+<!-- TEST ME MODAL -->
+<div class="modal-overlay" id="testModal">
+  <div class="modal">
+    <h2>Test Your Understanding</h2>
+    <p class="modal-sub">Faith Foundations — 3 questions. Answer honestly.</p>
+    <div id="quizQuestions">
+      <div class="quiz-q">
+        <p>1. What is faith actually based on?</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this)">A feeling of confidence</button>
+          <button class="quiz-option" onclick="selectOption(this)">The Word of God — what He actually said</button>
+          <button class="quiz-option" onclick="selectOption(this)">How many times you've prayed</button>
+        </div>
+      </div>
+      <div class="quiz-q">
+        <p>2. What does renewing your mind require?</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this)">Positive thinking and motivation</button>
+          <button class="quiz-option" onclick="selectOption(this)">Consistent exposure to the Word and new patterns</button>
+          <button class="quiz-option" onclick="selectOption(this)">Attending church more often</button>
+        </div>
+      </div>
+      <div class="quiz-q">
+        <p>3. What happens when faith is not connected to the Word?</p>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="selectOption(this)">It still works if your heart is right</button>
+          <button class="quiz-option" onclick="selectOption(this)">It produces nothing — faith needs a source</button>
+          <button class="quiz-option" onclick="selectOption(this)">God fills in the gap automatically</button>
+        </div>
+      </div>
+      <button class="quiz-submit" onclick="submitQuiz()">Submit →</button>
+    </div>
+    <div class="quiz-result" id="quizResult">
+      <div class="quiz-result-badge result-applying" id="resultBadge">Understanding confirmed</div>
+      <h3 id="resultTitle">You're understanding — but not applying yet</h3>
+      <p id="resultText">You know the right answers. The gap is between what you know and what you're consistently living. That's the next level of work.</p>
+      <button class="modal-close" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+<script>
+function openModal() {
+  document.getElementById('testModal').classList.add('open');
+  document.getElementById('quizQuestions').style.display = 'block';
+  document.getElementById('quizResult').classList.remove('show');
+  document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+}
+function closeModal() { document.getElementById('testModal').classList.remove('open'); }
+document.getElementById('testModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+function selectOption(el) {
+  el.closest('.quiz-options').querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function submitQuiz() {
+  const selected = document.querySelectorAll('.quiz-option.selected').length;
+  document.getElementById('quizQuestions').style.display = 'none';
+  const res = document.getElementById('quizResult');
+  res.classList.add('show');
+  const badge = document.getElementById('resultBadge');
+  const title = document.getElementById('resultTitle');
+  const text = document.getElementById('resultText');
+  if (selected >= 2) {
+    badge.className = 'quiz-result-badge result-applying';
+    badge.textContent = 'Understanding confirmed';
+    title.textContent = "You're understanding — but not applying yet";
+    text.textContent = "You know the right answers. The gap is between what you know and what you're consistently living. That's the next level of work.";
+  } else {
+    badge.className = 'quiz-result-badge result-stuck';
+    badge.textContent = 'Gap detected';
+    title.textContent = "There's a belief gap here";
+    text.textContent = "Some answers show you're still working from an old framework. Go back through the Faith Foundations teaching before moving to the next topic.";
+  }
+}
+</script>
 
 </body>
 </html>
