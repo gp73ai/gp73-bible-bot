@@ -1257,12 +1257,19 @@ const sessionMemory = new Map();
 
 function getMemory(sessionId) {
   return sessionMemory.get(sessionId) || {
-    interactions: [],       // up to 5 structured interaction records
-    topicCounts: {},        // tracks how many times each topic has appeared
-    struggleTopics: [],     // topics where user showed STRUGGLING signal
-    currentPath: 'unset',  // active conversation path
-    pathTurnCount: 0,       // consecutive turns on the same path
-    lastEscalatedPath: null, // prevent double escalation in same cycle
+    interactions: [],         // up to 5 structured interaction records
+    topicCounts: {},          // tracks how many times each topic has appeared
+    struggleTopics: [],       // topics where user showed STRUGGLING signal
+    currentPath: 'unset',    // active conversation path
+    pathTurnCount: 0,         // consecutive turns on the same path
+    lastEscalatedPath: null,  // prevent double escalation in same cycle
+    // IDENTITY LAYER
+    beliefPatterns: [],       // detected repeated phrases / belief signals
+    dominantPath: null,       // most consistent path across session
+    pathCounts: {},           // count of each path used
+    escalationHistory: { count: 0, lastPath: null, lastTurn: 0 },
+    repeatedPhrases: [],      // phrases user has said more than once
+    turnCount: 0,             // total turns in session
   };
 }
 
@@ -1291,9 +1298,33 @@ function extractTopic(question) {
   return 'general';
 }
 
+// Canonical repeated phrases to detect across turns
+const TRACKED_PHRASES = [
+  "i've been trying", "i've tried", "i keep", "nothing is working",
+  "nothing changes", "same thing", "it's not working", "i still",
+  "i understand but", "i know but", "i already know", "i've been doing this",
+  "i don't feel", "i feel like", "why do i keep", "i can't seem to",
+  "i want to but", "i believe but", "i try but"
+];
+
+function detectRepeatedPhrases(question, existing) {
+  const lower = question.toLowerCase();
+  const found = TRACKED_PHRASES.filter(p => lower.includes(p));
+  const newRepeats = [];
+  for (const phrase of found) {
+    const count = (existing[phrase] || 0) + 1;
+    existing[phrase] = count;
+    if (count >= 2) newRepeats.push({ phrase, count });
+  }
+  return { updated: existing, newRepeats };
+}
+
 function updateMemory(sessionId, question, answer, userState, issueSummary, path) {
   const mem = getMemory(sessionId);
   const topic = extractTopic(question);
+
+  // Increment total turn count
+  mem.turnCount = (mem.turnCount || 0) + 1;
 
   // Build structured interaction record
   const record = {
@@ -1321,11 +1352,31 @@ function updateMemory(sessionId, question, answer, userState, issueSummary, path
     if (path === mem.currentPath) {
       mem.pathTurnCount = (mem.pathTurnCount || 0) + 1;
     } else {
-      // Path shifted -- reset turn count, clear escalation lock
       mem.pathTurnCount = 1;
       mem.lastEscalatedPath = null;
     }
     mem.currentPath = path;
+    // Track dominant path
+    mem.pathCounts = mem.pathCounts || {};
+    mem.pathCounts[path] = (mem.pathCounts[path] || 0) + 1;
+    const dominant = Object.entries(mem.pathCounts).sort((a,b) => b[1]-a[1])[0];
+    if (dominant) mem.dominantPath = dominant[0];
+  }
+
+  // Detect repeated phrases
+  mem.repeatedPhrases = mem.repeatedPhrases || {};
+  const { updated, newRepeats } = detectRepeatedPhrases(question, mem.repeatedPhrases);
+  mem.repeatedPhrases = updated;
+
+  // Track belief patterns from new repeats
+  mem.beliefPatterns = mem.beliefPatterns || [];
+  for (const r of newRepeats) {
+    if (!mem.beliefPatterns.find(b => b.phrase === r.phrase)) {
+      mem.beliefPatterns.push({ phrase: r.phrase, count: r.count, topic });
+    } else {
+      const existing = mem.beliefPatterns.find(b => b.phrase === r.phrase);
+      if (existing) existing.count = r.count;
+    }
   }
 
   sessionMemory.set(sessionId, mem);
@@ -1333,6 +1384,9 @@ function updateMemory(sessionId, question, answer, userState, issueSummary, path
     const firstKey = sessionMemory.keys().next().value;
     sessionMemory.delete(firstKey);
   }
+
+  // Return any newly detected repeat patterns for use in response
+  return newRepeats;
 }
 
 function buildConversationContext(mem, currentQuestion) {
@@ -1365,6 +1419,22 @@ function buildConversationContext(mem, currentQuestion) {
     lines.push('If this question reflects continued difficulty, reference the pattern naturally and deepen the instruction.');
     lines.push('Example: "You\'ve been wrestling with this..." or "Since this keeps coming up..."');
     lines.push('Use this ONLY if it fits naturally. Do NOT force it.');
+  }
+
+  // Identity layer: surface belief patterns if present
+  const patterns = (mem.beliefPatterns || []).filter(b => b.count >= 2);
+  if (patterns.length) {
+    lines.push(`\nIDENTITY PATTERNS DETECTED (user has repeated these across turns):`);
+    patterns.slice(0, 3).forEach(b => {
+      lines.push(`  - "${b.phrase}" (said ${b.count} times, usually about: ${b.topic})`);
+    });
+    lines.push('If this question repeats a pattern, surface it naturally and specifically.');
+    lines.push('Example: "You said the same thing before -- \'nothing is working.\' So either nothing changed, or nothing actually shifted in how you\'re applying it."');
+    lines.push('Keep it subtle. One reference max. Do NOT make it feel like surveillance.');
+  }
+
+  if (mem.dominantPath) {
+    lines.push(`\nDOMINANT CONVERSATION PATTERN: This user most often operates in ${mem.dominantPath} mode.`);
   }
 
   lines.push('\nUSAGE RULES:');
@@ -1458,8 +1528,11 @@ export default async function handler(req, res) {
       }
     }
 
-    // Save this turn to memory with path tracking
-    updateMemory(sessionId, question, finalAnswer, toneClass, userSignal, path);
+    // Save this turn to memory with path + identity tracking
+    const repeats = updateMemory(sessionId, question, finalAnswer, toneClass, userSignal, path);
+    if (repeats && repeats.length) {
+      console.log('[GP73 IDENTITY] Repeated patterns:', repeats.map(r => r.phrase));
+    }
 
     console.log('[GP73 FINAL]', finalAnswer);
     return res.status(200).json({ source: 'gp73-brain', answer: finalAnswer });
