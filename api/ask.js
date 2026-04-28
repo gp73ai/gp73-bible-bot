@@ -1539,7 +1539,7 @@ function buildConversationContext(mem, currentQuestion) {
   const recent = interactions.slice(-3);
   lines.push('PRIOR INTERACTIONS (summary only):');
   recent.forEach((r, i) => {
-    lines.push(`[${i + 1}] Topic: ${r.topic} | State: ${r.userState} | Asked: "${r.questionShort}" | Told: "${r.instructionGiven}..."`);
+    lines.push(`[${i + 1}] Topic: ${r.topic} | State: ${r.toneClass} | Asked: "${r.questionShort}" | Told: "${r.instructionGiven}..."`);
   });
 
   // Behavioral signals for the prompt
