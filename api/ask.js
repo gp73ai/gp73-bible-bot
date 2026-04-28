@@ -1383,7 +1383,7 @@ function updateMemory(sessionId, question, answer, toneClass, issueSummary, path
   // Build structured interaction record
   const record = {
     topic,
-    userState,
+    toneClass,
     issueSummary,
     path,
     questionShort: question.slice(0, 80),
