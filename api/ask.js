@@ -1397,7 +1397,7 @@ function updateMemory(sessionId, question, answer, toneClass, issueSummary, path
   mem.topicCounts[topic] = (mem.topicCounts[topic] || 0) + 1;
 
   // Track struggle patterns
-  if (userState === 'STRUGGLING' && !mem.struggleTopics.includes(topic)) {
+  if (toneClass === 'STRUGGLING' && !mem.struggleTopics.includes(topic)) {
     mem.struggleTopics.push(topic);
   }
 
