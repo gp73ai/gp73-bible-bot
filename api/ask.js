@@ -1373,7 +1373,7 @@ function detectRepeatedPhrases(question, existing) {
   return { updated: existing, newRepeats };
 }
 
-function updateMemory(sessionId, question, answer, userState, issueSummary, path) {
+function updateMemory(sessionId, question, answer, toneClass, issueSummary, path) {
   const mem = getMemory(sessionId);
   const topic = extractTopic(question);
 
