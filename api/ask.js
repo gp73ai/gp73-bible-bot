@@ -726,44 +726,61 @@ Return ONLY the question. No intro. No label. No extra text.`;
 // ============================================================
 // USER SIGNAL EXTRACTOR
 // Reads what the user is actually dealing with beneath the question
-// Returns a plain-language situation description for prompt injection
+// Returns { signal, detectionState } for prompt injection and routing
+// detectionState: standard | acknowledgement | unclear_application
 // ============================================================
 function extractUserSignal(q) {
   const lower = q.toLowerCase();
 
-  // Failure / not working
+  // ACKNOWLEDGEMENT -- user agrees or says they understand but hasn't applied
+  if (/i understand|i see|that makes sense|i get it|i know that|you.re right|i agree|ok i see|that.s true/.test(lower)) {
+    return {
+      signal: 'user is acknowledging truth but has not yet applied it',
+      detectionState: 'acknowledgement'
+    };
+  }
+
+  // UNCLEAR APPLICATION -- user says they tried but gives no specifics
+  if (/i tried|i.ve tried|i attempted|i did that|i.ve been doing|i already did|i.ve done that|i have been trying/.test(lower)) {
+    return {
+      signal: 'user claims to have tried something but has not given specifics -- investigate before diagnosing',
+      detectionState: 'unclear_application'
+    };
+  }
+
+  // Failure / not working (with specifics already present)
   if (/not working|doesn.t work|isn.t working|failed|failing|nothing.s changing|no change|no results/.test(lower))
-    return 'user is experiencing failure or lack of results and is questioning whether this works';
+    return { signal: 'user is experiencing failure or lack of results and is questioning whether this works', detectionState: 'standard' };
 
   // Confusion / doesn't understand
   if (/don.t understand|doesn.t make sense|confused|confusing|lost|unclear|can.t figure/.test(lower))
-    return 'user is genuinely confused and needs clarity, not correction';
+    return { signal: 'user is genuinely confused and needs clarity, not correction', detectionState: 'standard' };
 
   // Frustration / giving up
   if (/tired of|giving up|can.t keep|why bother|what.s the point|fed up|done trying/.test(lower))
-    return 'user is frustrated and close to giving up -- needs to be steadied, not lectured';
+    return { signal: 'user is frustrated and close to giving up -- needs to be steadied, not lectured', detectionState: 'standard' };
 
   // Guilt / shame
   if (/feel guilty|feel ashamed|keep sinning|messed up|failed again|too far gone|not good enough/.test(lower))
-    return 'user is dealing with guilt or shame and may feel disqualified -- needs truth that restores';
+    return { signal: 'user is dealing with guilt or shame and may feel disqualified -- needs truth that restores', detectionState: 'standard' };
 
   // Doubt / questioning
   if (/don.t know if|not sure|wondering if|questioning|doubt|really true/.test(lower))
-    return 'user is in a season of doubt and needs grounded, specific truth -- not generic reassurance';
+    return { signal: 'user is in a season of doubt and needs grounded, specific truth -- not generic reassurance', detectionState: 'standard' };
 
   // Pride / resistance
   if (/i think|i believe|i don.t think|i disagree|that.s not right|why should i/.test(lower))
-    return 'user is confident in their own position -- needs direct truth that cuts through the assumption without attacking';
+    return { signal: 'user is confident in their own position -- needs direct truth that cuts through the assumption without attacking', detectionState: 'standard' };
 
   // Desire / wanting something
   if (/how do i|i want to|i need to|help me|show me|teach me/.test(lower))
-    return 'user wants practical instruction -- give them something they can actually do';
+    return { signal: 'user wants practical instruction -- give them something they can actually do', detectionState: 'standard' };
 
   // Pain / emotional
   if (/hurting|hurt|broken|alone|scared|hopeless|depressed|pain|suffering/.test(lower))
-    return 'user is in emotional pain -- begin where they are, then move toward truth';
+    return { signal: 'user is in emotional pain -- begin where they are, then move toward truth', detectionState: 'standard' };
 
-  return 'user is asking a genuine question and needs a clear, grounded answer';
+  return { signal: 'user is asking a genuine question and needs a clear, grounded answer', detectionState: 'standard' };
 }
 
 // ============================================================
@@ -823,9 +840,50 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
 
   // Classify tone and extract user signal
   const toneClass = classifyTone(question);
-  const userSignal = extractUserSignal(question);
+  const { signal: userSignal, detectionState } = extractUserSignal(question);
   console.log('[GP73 TONE]', toneClass);
   console.log('[GP73 SIGNAL]', userSignal);
+  console.log('[GP73 STATE]', detectionState);
+
+  // INVESTIGATION-FIRST ROUTING
+  // For acknowledgement or unclear application -- ask before diagnosing
+  if (detectionState === 'acknowledgement') {
+    const clarifyPrompt = `The user said: "${question}"
+
+They seem to be acknowledging something, but may not have actually applied it yet.
+Ask ONE short, natural, direct question that finds out what they actually understood -- not just that they agreed.
+Do NOT correct. Do NOT teach. Do NOT assume they got it.
+Example: "What exactly stood out to you from that?" or "What does that actually look like for you day to day?"
+Return ONLY the question. One sentence. Natural. No intro.`;
+
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({ model: 'gpt-4o', temperature: 0.4, max_tokens: 60, messages: [{ role: 'user', content: clarifyPrompt }] }),
+    });
+    const rd = await r.json();
+    const clarifyQ = (rd.choices?.[0]?.message?.content || '').trim();
+    return { answer: clarifyQ || 'What exactly did you understand from that?', toneClass, userSignal, detectionState };
+  }
+
+  if (detectionState === 'unclear_application') {
+    const investigatePrompt = `The user said: "${question}"
+
+They claim to have tried something but gave no specifics.
+Do NOT diagnose why it failed. Do NOT assume they didn't commit or didn't understand.
+Ask ONE short, direct question to find out what they actually did.
+Example: "What did you actually do?" or "Walk me through what you tried."
+Return ONLY the question. One sentence. Natural. No intro.`;
+
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({ model: 'gpt-4o', temperature: 0.4, max_tokens: 60, messages: [{ role: 'user', content: investigatePrompt }] }),
+    });
+    const rd = await r.json();
+    const investigateQ = (rd.choices?.[0]?.message?.content || '').trim();
+    return { answer: investigateQ || 'What did you actually do?', toneClass, userSignal, detectionState };
+  }
 
   // For CORRECTION: detect sensitivity level to calibrate delivery
   const correctionSensitivity = toneClass === 'CORRECTION' ? detectCorrectionSensitivity(question) : null;
@@ -957,7 +1015,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const firstClean = voiceCheck(firstRaw);
 
   if (firstClean && isGrounded(firstClean, teachingContext)) {
-    return { answer: firstClean, toneClass, userSignal };
+    return { answer: firstClean, toneClass, userSignal, detectionState };
   }
 
   // If not grounded or failed voice check -- regenerate with stricter anchor
@@ -972,7 +1030,7 @@ Respond directly and naturally. Use the teaching context. Do not guess or genera
   const secondRaw = await callGPT(anchoredMessages);
   console.log('[GP73 RAW 2]', secondRaw);
   const secondClean = voiceCheck(secondRaw);
-  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal };
+  return { answer: secondClean || secondRaw.trim() || 'Check the Word on this one.', toneClass, userSignal, detectionState };
 }
 
 // ============================================================
@@ -1143,11 +1201,12 @@ export default async function handler(req, res) {
     // teachingContext replaces generic VOICE_SYSTEM_PROMPT when available
     // conversationContext adds last 1-2 turns for continuity -- does NOT override current question
     const systemPrompt = intent === 'general' ? GENERAL_PROMPT : VOICE_SYSTEM_PROMPT;
-    const { answer, toneClass, userSignal } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext);
+    const { answer, toneClass, userSignal, detectionState } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext);
 
     // STEP 6 — Conversation control: decide if a follow-up question is needed
+    // Skip follow-up generation if system already returned an investigative question
     let finalAnswer = answer;
-    if (shouldAskFollowUp(userSignal, toneClass, question)) {
+    if (detectionState === 'standard' && shouldAskFollowUp(userSignal, toneClass, question)) {
       try {
         const followUp = await generateFollowUp(question, answer, teachingContext);
         if (followUp) {
