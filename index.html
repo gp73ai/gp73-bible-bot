@@ -337,19 +337,7 @@
   .study-done-banner h3 { font-size: 16px; font-weight: 800; color: #FFD600; margin-bottom: 6px; }
   .study-done-banner p { font-size: 13px; color: #888; }
 
-  /* ─── OUTPUT ─── */
-  #out {
-    background: #111;
-    border-left: 3px solid #FFD600;
-    padding: 20px;
-    color: #ddd;
-    margin-top: 20px;
-    white-space: pre-wrap;
-    font-size: 16px;
-    line-height: 1.7;
-    min-height: 60px;
-    border-radius: 0 4px 4px 0;
-  }
+  /* #out styles now inline — see HTML */
 
   /* ─── POST-ANSWER CARDS (hidden by default) ─── */
   #conversion-cards {
@@ -734,6 +722,10 @@
     <button id="clarityBtn" class="ask-btn" onclick="ask()" style="flex:1;min-width:160px">Get Clarity &rarr;</button>
     <button id="measureBtn" class="ask-btn" onclick="openTestModal('faith')" style="flex:1;min-width:160px;background:transparent;border:2px solid #FFD600;color:#FFD600" onmouseover="this.style.background='rgba(255,214,0,0.08)'" onmouseout="this.style.background='transparent'">Measure Your Understanding</button>
   </div>
+
+  <!-- ANSWER OUTPUT — directly below Get Clarity -->
+  <div id="out" style="background:#111;border-left:3px solid #FFD600;padding:20px;color:#ddd;margin-bottom:16px;white-space:pre-wrap;font-size:16px;line-height:1.7;min-height:60px;border-radius:0 4px 4px 0;display:none"></div>
+
   <div style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;margin-top:2px">Start here if you want to see where you stand</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
     <span style="font-size:11px;color:#555;letter-spacing:.05em;text-transform:uppercase;align-self:center;margin-right:4px">Topics:</span>
@@ -793,12 +785,10 @@
         <div style="font-size:11px;color:#555">placement</div>
       </div>
     </div>
-    <a href="/dashboard" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:900;font-size:14px;padding:12px;border-radius:8px;text-decoration:none;letter-spacing:.02em">View Your Dashboard →</a>
+    <a href="/dashboard" style="display:block;width:100%;text-align:center;background:#FFD600;color:#000;font-weight:900;font-size:14px;padding:12px;border-radius:8px;text-decoration:none;letter-spacing:.02em">Start Tracking Your Growth →</a>
   </div>
 
-  <div id="out">Ask something real.</div>
-
-  <!-- ─── DEAD SPACE BRIDGE ─── -->
+  <!-- ─── VIDEO SECTION ─── -->
   <!-- ─── FOUNDER VIDEO BLOCK ─── -->
   <div id="founderVideo" style="margin-top:28px;margin-bottom:8px">
     <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:6px">Why this exists</div>
@@ -853,58 +843,49 @@
     <div class="conversion-label">Go deeper with this topic</div>
     <div class="cards-grid">
 
-      <!-- COLUMN 1: QUICK CLARITY -->
+      <!-- COLUMN 1: STARTER $7 -->
       <div class="cta-card">
-        <div class="cta-card-tag">Quick Clarity</div>
-        <h3>Understand One Topic Fast</h3>
-        <p>Focused breakdowns that give you clarity without hours of searching or confusion.</p>
+        <div class="cta-card-tag">Starter &mdash; $7/mo</div>
+        <h3>See Where You Stand</h3>
+        <p>Get clarity on your current understanding and begin identifying where you need to grow.</p>
         <ul style="margin:14px 0 18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Straightforward explanation of one topic</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Structured outline you can follow</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Immediate application</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Built from real teachings, not generic content</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Access to foundational topic tests</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Basic growth tracking dashboard</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Measure your current level of understanding</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Identify gaps in knowledge and consistency</li>
         </ul>
-        <a class="cta-card-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Browse PDFs &rarr;</a>
+        <a class="cta-card-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Start Here &rarr;</a>
       </div>
 
-      <!-- COLUMN 2: GUIDED GROWTH -->
+      <!-- COLUMN 2: BUILDER $19 -->
       <div class="cta-card">
-        <div class="cta-card-tag">Guided Growth</div>
-        <h3>Don&#8217;t Just Learn. Actually Change.</h3>
-        <p>Most people learn but never grow. This system shows you where you are, what you&#8217;re missing, and what to do next.</p>
+        <div class="cta-card-tag">Builder &mdash; $19/mo</div>
+        <h3>Start Growing With Structure</h3>
+        <p>Move beyond awareness and begin building consistency in how you study and understand the Word.</p>
         <ul style="margin:14px 0 18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Weekly structured teaching breakdowns</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Real-time Q&amp;A when you&#8217;re stuck</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Progress tracking so you can see growth</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Topic-based learning paths</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Clear next steps after each session</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Expanded access to topic tests</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Improved progress tracking across sessions</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Begin recognizing patterns in your understanding</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Build consistency in study and application</li>
         </ul>
-        <a class="cta-card-btn outline" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Join Now &mdash; $7/month</a>
+        <button class="cta-card-btn" onclick="startStripeCheckout('core')" style="cursor:pointer;border:none;width:100%;text-align:center">Start Growing &rarr;</button>
       </div>
 
-      <!-- COLUMN 3: FULL FRAMEWORK -->
+      <!-- COLUMN 3: DISCIPLESHIP $39 -->
       <div class="cta-card">
-        <div class="cta-card-tag">Full Framework</div>
-        <h3>Learn How to Understand Scripture for Yourself</h3>
-        <p>This is not more content. This is the structure behind understanding. If you are ready to stop depending on explanations and start seeing clearly for yourself, this gives you the system to do it.</p>
+        <div class="cta-card-tag">Discipleship &mdash; $39/mo</div>
+        <h3>Commit to Real Growth</h3>
+        <p>This is where transformation happens. Track your progress, refine your understanding, and develop consistency in truth.</p>
         <ul style="margin:14px 0 10px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> How to interpret scripture correctly without guessing</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> How to uncover hidden meaning and connect the dots</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Understanding God&#8217;s structure, laws, and patterns</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Spiritual reasoning so truth builds instead of confuses</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> How to recognize what is being said versus assumed</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Understanding deeper topics: roles, function, and purpose</li>
-          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> A repeatable system to study, teach, and grow independently</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Full access to all tests and topics</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Complete growth dashboard with insights</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Pattern tracking across your learning</li>
+          <li style="font-size:13px;color:#ccc;display:flex;gap:8px;align-items:flex-start"><span style="color:#FFD600;font-weight:700">&#9656;</span> Structured path for ongoing development</li>
         </ul>
-        <div style="font-size:11px;color:#FFD600;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">What you get:</div>
-        <ul style="margin:0 0 14px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">
-          <li style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#555">&#9656;</span> 7 structured video teaching modules</li>
-          <li style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#555">&#9656;</span> Step-by-step framework breakdown</li>
-          <li style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#555">&#9656;</span> Private teaching access (coming soon)</li>
-          <li style="font-size:13px;color:#888;display:flex;gap:8px;align-items:flex-start"><span style="color:#555">&#9656;</span> Downloadable study PDFs</li>
-        </ul>
-        <p style="font-size:12px;color:#555;font-style:italic;margin-bottom:14px">Built for those who want to understand truth for themselves, not just hear it.</p>
-        <button class="cta-card-btn" onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.')" style="cursor:pointer">Get Access &mdash; $99</button>
+        <div style="font-size:11px;color:#FFD600;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:10px 0 6px">Also available: GP73 Framework &mdash; $99</div>
+        <p style="font-size:12px;color:#555;margin-bottom:12px;line-height:1.5">Includes dashboard access to track your study, consistency, and understanding without a guided path.<br><br><em style="color:#666">The dashboard will not guide you. It will reveal you. Your patterns, your consistency, and your growth will be visible. What you do with that is up to you.</em></p>
+        <button class="cta-card-btn" onclick="startStripeCheckout('premium')" style="cursor:pointer;border:none;width:100%;text-align:center;margin-bottom:8px">Commit to Growth &rarr;</button>
+        <button class="cta-card-btn outline" onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.')" style="cursor:pointer;width:100%;text-align:center">Get the Framework &mdash; $99</button>
       </div>
 
     </div>
@@ -1003,10 +984,28 @@
   <div class="ladder-row">
     <div class="ladder-price">$7/mo</div>
     <div>
-      <div class="ladder-name">Discipleship Circle</div>
-      <div class="ladder-desc">Monthly teachings, study materials, and biblical clarity. Stay sharp. Stay growing.</div>
+      <div class="ladder-name">Starter &mdash; See Where You Stand</div>
+      <div class="ladder-desc">Access foundational tests, basic dashboard tracking, and identify gaps in your understanding.</div>
     </div>
-    <a class="ladder-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Join Now</a>
+    <a class="ladder-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Start Here</a>
+  </div>
+
+  <div class="ladder-row">
+    <div class="ladder-price">$19/mo</div>
+    <div>
+      <div class="ladder-name">Builder &mdash; Start Growing With Structure</div>
+      <div class="ladder-desc">Expanded tests, improved tracking, and consistency in study and application of the Word.</div>
+    </div>
+    <a class="ladder-btn" href="#" onclick="startStripeCheckout('core');return false">Start Growing</a>
+  </div>
+
+  <div class="ladder-row">
+    <div class="ladder-price">$39/mo</div>
+    <div>
+      <div class="ladder-name">Discipleship &mdash; Commit to Real Growth</div>
+      <div class="ladder-desc">Full test access, complete dashboard insights, and a structured path for ongoing development.</div>
+    </div>
+    <a class="ladder-btn" href="#" onclick="startStripeCheckout('premium');return false">Commit to Growth</a>
   </div>
 
   <div class="ladder-row">
@@ -1023,8 +1022,9 @@
  <div>
  <div class="ladder-name">GP73 Biblical Framework</div>
  <div class="ladder-desc">7 structured video teaching modules that teach you how to interpret scripture correctly, understand spiritual patterns, and uncover deeper meaning in the Word. Built for those ready to move beyond learning into understanding and leadership.</div>
+ <div style="font-size:12px;color:#555;margin-top:8px;line-height:1.5;font-style:italic">Includes dashboard access. The dashboard will not guide you. It will reveal you.</div>
  </div>
- <a class="ladder-btn" href="https://stan.store/iamgodsprisoner" target="_blank">Get Access</a>
+ <a class="ladder-btn" href="#" onclick="alert('Framework access is being finalized. You\'ll be able to enter shortly.');return false">Get Access</a>
  </div>
 
 </div>
@@ -1112,6 +1112,7 @@
     isLoading = true;
     const out = document.getElementById('out');
     const cards = document.getElementById('conversion-cards');
+    out.style.display = 'block';
     out.textContent = 'Thinking...';
     cards.classList.remove('visible');
 
@@ -1485,24 +1486,29 @@
       };
     });
 
-    // -- Dashboard preview: populate from localStorage --
+    // -- Dashboard preview: populate from localStorage (NaN-safe) --
     try {
-      var streak = parseInt(localStorage.getItem('gp73_streak') || '0') || 0;
-      var level  = localStorage.getItem('gp73_user_level') || '';
-      var scoresRaw = JSON.parse(localStorage.getItem('gp73_scores') || '{}');
-      var vals = Object.values(scoresRaw).map(function(arr) {
-        if (!arr || !arr.length) return null;
+      var rawStreak = localStorage.getItem('gp73_streak');
+      var streak = rawStreak ? (parseInt(rawStreak, 10) || 0) : 0;
+      var level = localStorage.getItem('gp73_user_level') || '';
+      var scoresRaw = {};
+      try { scoresRaw = JSON.parse(localStorage.getItem('gp73_scores') || '{}'); } catch(e2) { scoresRaw = {}; }
+      var vals = [];
+      Object.values(scoresRaw).forEach(function(arr) {
+        if (!Array.isArray(arr) || !arr.length) return;
         var last = arr[arr.length - 1];
-        return typeof last === 'object' ? last.score : last;
-      }).filter(function(v) { return v != null && !isNaN(v); });
+        var v = (last !== null && typeof last === 'object') ? last.score : last;
+        var n = parseFloat(v);
+        if (!isNaN(n) && isFinite(n)) vals.push(n);
+      });
       var avg = vals.length ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length) : null;
 
       var sEl = document.getElementById('prevStreak');
       var aEl = document.getElementById('prevAlign');
       var lEl = document.getElementById('prevLevel');
-      if (sEl) sEl.textContent = streak;
-      if (aEl) aEl.textContent = avg != null ? avg + '%' : '—';
-      if (lEl) lEl.textContent = level || 'New';
+      if (sEl) sEl.textContent = (streak > 0) ? streak : '—';
+      if (aEl) aEl.textContent = (avg !== null) ? avg + '%' : '—';
+      if (lEl) lEl.textContent = level ? level.charAt(0).toUpperCase() + level.slice(1) : 'New';
     } catch(e) { console.warn('Dashboard preview error:', e); }
 
     // -- Verify critical functions are available (console guard) --
@@ -1559,18 +1565,18 @@
         <div class="gp73-tier-cards">
           <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-tier-card" target="_blank">
             <div class="gp73-tier-price">$7<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
-            <div class="gp73-tier-name">Discipleship Circle</div>
-            <div class="gp73-tier-desc">Guided teaching and consistency system &mdash; light interaction, not full system access</div>
+            <div class="gp73-tier-name">Starter &mdash; See Where You Stand</div>
+            <div class="gp73-tier-desc">Get clarity on your current understanding. Access foundational tests, basic dashboard tracking, and identify gaps in your knowledge.</div>
           </a>
           <a href="#" onclick="startStripeCheckout('core');return false" class="gp73-tier-card featured">
             <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">RECOMMENDED</span></div>
-            <div class="gp73-tier-name">Core System</div>
-            <div class="gp73-tier-desc">Full tests + dashboard + all topics + growth tracking</div>
+            <div class="gp73-tier-name">Builder &mdash; Start Growing With Structure</div>
+            <div class="gp73-tier-desc">Expanded tests, improved tracking, and pattern recognition across sessions. Build consistency in study and application.</div>
           </a>
           <a href="#" onclick="startStripeCheckout('premium');return false" class="gp73-tier-card">
             <div class="gp73-tier-price">$39<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
-            <div class="gp73-tier-name">Premium &mdash; Voice + Full Access</div>
-            <div class="gp73-tier-desc">Everything in Core + voice input/output + priority access</div>
+            <div class="gp73-tier-name">Discipleship &mdash; Commit to Real Growth</div>
+            <div class="gp73-tier-desc">Full test access, complete dashboard insights, pattern tracking, and a structured path for ongoing development in truth.</div>
           </a>
         </div>
         <button class="gp73-close" onclick="closeModal('testModal')">Maybe later</button>
@@ -1589,18 +1595,18 @@
       <div class="gp73-tier-cards">
         <a href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" class="gp73-tier-card" target="_blank">
           <div class="gp73-tier-price">$7<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
-          <div class="gp73-tier-name">Discipleship Circle</div>
-          <div class="gp73-tier-desc">Guided teaching and consistency system &mdash; light interaction, not full system access</div>
+          <div class="gp73-tier-name">Starter &mdash; See Where You Stand</div>
+          <div class="gp73-tier-desc">Access foundational topic tests, basic growth tracking, and identify gaps in your understanding and consistency.</div>
         </a>
         <a href="#" onclick="startStripeCheckout('core');return false" class="gp73-tier-card featured">
           <div class="gp73-tier-price">$19<span style="font-size:14px;font-weight:400;color:#888">/mo</span> <span class="gp73-tier-badge">BEST VALUE</span></div>
-          <div class="gp73-tier-name">Core System</div>
-          <div class="gp73-tier-desc">Full chat + all tests + dashboard + topic progression</div>
+          <div class="gp73-tier-name">Builder &mdash; Start Growing With Structure</div>
+          <div class="gp73-tier-desc">Expanded tests, improved tracking, pattern recognition, and consistency in study and application of the Word.</div>
         </a>
         <a href="#" onclick="startStripeCheckout('premium');return false" class="gp73-tier-card">
           <div class="gp73-tier-price">$39<span style="font-size:14px;font-weight:400;color:#888">/mo</span></div>
-          <div class="gp73-tier-name">Premium &mdash; Voice + Full Access</div>
-          <div class="gp73-tier-desc">Everything in Core + voice input/output + priority access</div>
+          <div class="gp73-tier-name">Discipleship &mdash; Commit to Real Growth</div>
+          <div class="gp73-tier-desc">Full access to all tests, complete dashboard with insights, pattern tracking, and a structured development path.</div>
         </a>
       </div>
       <button class="gp73-close" onclick="closeModal('paywallModal')">Maybe later</button>
