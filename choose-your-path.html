@@ -63,7 +63,7 @@
         <li><span>&#9656;</span> Measure your current level of understanding</li>
         <li><span>&#9656;</span> Identify gaps in knowledge and consistency</li>
       </ul>
-      <a class="tier-btn" href="https://stan.store/iamgodsprisoner/p/join-the-discipleship-circle" target="_blank">Start Here &rarr;</a>
+      <a class="tier-btn" href="https://stan.store/iamgodsprisoner/p/starter--see-where-you-stand">Start Here &rarr;</a>
     </div>
 
     <!-- $19 BUILDER -->
@@ -79,7 +79,7 @@
         <li><span>&#9656;</span> Begin recognizing patterns in your understanding</li>
         <li><span>&#9656;</span> Build consistency in study and application</li>
       </ul>
-      <button class="tier-btn" onclick="gp73Coming('core')">Start Growing &rarr;</button>
+      <button class="tier-btn" onclick="window.location.href='https://stan.store/iamgodsprisoner/p/growth--build-consistency'">Start Growing &rarr;</button>
     </div>
 
     <!-- $39 DISCIPLESHIP -->
@@ -95,7 +95,7 @@
         <li><span>&#9656;</span> Pattern tracking across your learning</li>
         <li><span>&#9656;</span> Structured path for ongoing development</li>
       </ul>
-      <button class="tier-btn" onclick="gp73Coming('premium')">Commit to Growth &rarr;</button>
+      <button class="tier-btn" onclick="window.location.href='https://stan.store/iamgodsprisoner/p/access--unlock--apply'">Commit to Growth &rarr;</button>
     </div>
 
     <!-- $99 FRAMEWORK -->
@@ -111,7 +111,7 @@
         <li><span>&#9656;</span> Growth dashboard &mdash; self-directed</li>
         <li><span>&#9656;</span> Downloadable study PDFs</li>
       </ul>
-      <button class="tier-btn outline" onclick="gp73Coming('framework')">Get the Framework &rarr;</button>
+      <button class="tier-btn outline" onclick="window.location.href='https://stan.store/iamgodsprisoner/p/gp73-framework--identity--execution-system'">Get the Framework &rarr;</button>
     </div>
 
   </div>
@@ -119,12 +119,13 @@
 </div>
 <script>
 function gp73Coming(tier) {
-  // TODO: wire to Stripe checkout sessions when ready
-  var msgs = {
-    core: 'Builder access ($19/mo) is being finalized. You're early. Check back shortly.',
-    premium: 'Discipleship access ($39/mo) is being finalized. Check back shortly.',
-    framework: 'Framework access ($99) is being finalized. You'll be able to enter shortly.'
+  var urls = {
+    core: 'https://stan.store/iamgodsprisoner/p/growth--build-consistency',
+    premium: 'https://stan.store/iamgodsprisoner/p/access--unlock--apply',
+    framework: 'https://stan.store/iamgodsprisoner/p/gp73-framework--identity--execution-system'
   };
+  if (urls[tier]) window.location.href = urls[tier];
+};
   alert(msgs[tier] || 'Coming soon.');
 }
 </script>
