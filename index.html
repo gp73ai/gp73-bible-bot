@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>GP73 — Biblical Clarity by Apostle Sedrick Davis</title>
-
+<link rel="manifest" href="/manifest.json">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1613,6 +1613,12 @@
     <p>You've completed your study session for now. Take time to reflect and review what you've learned. Come back later to continue growing.</p>
   </div>
 </template>
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log('Service Worker Registered'));
+}
+</script>
+     
 </body>
 </html>
