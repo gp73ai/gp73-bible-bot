@@ -4,6 +4,50 @@ export const config = {
 };
 
 // ============================================================
+// KJV SCRIPTURE RETRIEVAL via API.Bible
+// ============================================================
+async function getKJVScripture(reference) {
+  if (!process.env.BIBLE_API_KEY) {
+    console.warn('[GP73 BIBLE] No BIBLE_API_KEY configured');
+    return null;
+  }
+
+  try {
+    const KJV_BIBLE_ID = 'de4e12af7f28f599-02'; // King James Version (KJV)
+    
+    // Normalize reference for API (e.g., "John 3:16" -> "JHN.3.16")
+    // Simple normalization - can be enhanced later
+    const normalizedRef = reference.replace(/\s+/g, '.').toUpperCase();
+    
+    const apiUrl = `https://rest.api.bible/v1/bibles/${KJV_BIBLE_ID}/verses/${normalizedRef}`;
+    
+    const response = await fetch(apiUrl, {
+      headers: {
+        'api-key': process.env.BIBLE_API_KEY,
+      },
+    });
+
+    if (!response.ok) {
+      console.warn(`[GP73 BIBLE] API error: ${response.status} for ref: ${reference}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const verseText = data.data?.content?.replace(/<[^>]*>/g, '').trim(); // Strip HTML tags
+    
+    if (verseText) {
+      console.log(`[GP73 BIBLE] Retrieved: ${reference} - ${verseText.slice(0, 60)}...`);
+      return { reference, text: verseText };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[GP73 BIBLE] Fetch error:', error.message);
+    return null;
+  }
+}
+
+// ============================================================
 // VOICE SYSTEM PROMPT — Chief's exact framework
 // ============================================================
 const VOICE_SYSTEM_PROMPT = `You are responding as a direct, authoritative teacher. You do not soften truth, you do not speak like a chatbot, and you do not give generic explanations.
@@ -1084,6 +1128,29 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
   const pathStrategy = getPathStrategy(path);
   console.log('[GP73 PATH]', path);
 
+  // SCRIPTURE DETECTION + FETCHING
+  // Detect patterns like "John 3:16", "Romans 8", "1 Corinthians 13:4-8", etc.
+  const scripturePattern = /\b(\d?\s*[A-Za-z]+)\s+(\d+)(?::(\d+)(?:-(\d+))?)?\b/g;
+  const scriptureMatches = [...question.matchAll(scripturePattern)];
+  
+  let scriptureContext = '';
+  if (scriptureMatches.length > 0) {
+    console.log('[GP73 SCRIPTURE] Detected references:', scriptureMatches.map(m => m[0]));
+    
+    // Fetch each scripture reference (limit to 3 verses max)
+    for (const match of scriptureMatches.slice(0, 3)) {
+      const fullRef = match[0];
+      const verse = await getKJVScripture(fullRef);
+      if (verse) {
+        scriptureContext += `\n\n[KJV Scripture: ${verse.reference}]\n${verse.text}`;
+      }
+    }
+    
+    if (scriptureContext) {
+      console.log('[GP73 SCRIPTURE] Injected KJV verses into context');
+    }
+  }
+
   // INVESTIGATION-FIRST ROUTING
   // For acknowledgement or unclear application -- ask before diagnosing
   if (detectionState === 'acknowledgement') {
@@ -1192,7 +1259,7 @@ GLOBAL RULES:
 - Do not use: "Here's the truth whether you like it or not", "You're looking at this from the wrong direction", "The issue isn't what you think it is"
 - Sound like a real person teaching, not a scripted bot
 
-TEACHING CONTEXT:
+${scriptureContext ? `SCRIPTURE CONTEXT (KJV):\n${scriptureContext}\n\nWhen scripture is provided above, reference it directly and accurately. Do not misquote or paraphrase scripture incorrectly.\n\n` : ''}TEACHING CONTEXT:
 ${teachingContext}`
     : `${systemPrompt}
 
@@ -1202,7 +1269,7 @@ ${pathInstruction}
 
 ${structureRule}
 
-GLOBAL RULES:
+${scriptureContext ? `\nSCRIPTURE CONTEXT (KJV):\n${scriptureContext}\n\nWhen scripture is provided above, reference it directly and accurately. Do not misquote or paraphrase scripture incorrectly.\n` : ''}\nGLOBAL RULES:
 - Never start two responses the same way
 - Do not wrap openers in quotation marks
 - Do not use: "Here's the truth whether you like it or not", "You're looking at this from the wrong direction"

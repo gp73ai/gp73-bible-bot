@@ -1,4 +1,10 @@
 {
+  "env": {
+    "OPENAI_API_KEY": "@openai-api-key",
+    "SUPABASE_URL": "@supabase-url",
+    "SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "BIBLE_API_KEY": "@bible-api-key"
+  },
   "routes": [
     { "handle": "filesystem" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
