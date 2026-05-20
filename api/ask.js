@@ -38,7 +38,7 @@ async function getKJVScripture(reference) {
     // Simple normalization - can be enhanced later
     const normalizedRef = reference.replace(/\s+/g, '.').toUpperCase();
     
-    const apiUrl = `https://api.scripture.bible/v1/bibles/${KJV_BIBLE_ID}/verses/${normalizedRef}`;
+    const apiUrl = `https://api.scripture.api.bible/v1/bibles/${KJV_BIBLE_ID}/verses/${normalizedRef}`;
     
     const response = await fetch(apiUrl, {
       headers: {
