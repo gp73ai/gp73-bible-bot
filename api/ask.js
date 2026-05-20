@@ -4,6 +4,25 @@ export const config = {
 };
 
 // ============================================================
+// INTENT CLASSIFICATION  (added 2026-05-20)
+// ============================================================
+function classifyIntent(question) {
+  const q = question.toLowerCase().trim();
+  const scriptureRef = q.match(
+    /\b(genesis|exodus|leviticus|numbers|deuteronomy|joshua|judges|ruth|samuel|kings|chronicles|ezra|nehemiah|esther|job|psalms?|proverbs|ecclesiastes|song of solomon|isaiah|jeremiah|lamentations|ezekiel|daniel|hosea|joel|amos|obadiah|jonah|micah|nahum|habakkuk|zephaniah|haggai|zechariah|malachi|matthew|mark|luke|john|acts|romans|corinthians|galatians|ephesians|philippians|colossians|thessalonians|timothy|titus|philemon|hebrews|james|peter|jude|revelation)\s+\d+:\d+/i
+  );
+  if (scriptureRef) {
+    if (/\bsay\b|\bsays\b|\bstate\b|\bstates\b|\bread\b|\bquote\b/.test(q)) {
+      return { type: 'SCRIPTURE_SAY', reference: scriptureRef[0] };
+    }
+    if (/\bmean\b|\bmeans\b|\bmeaning\b|\bexplain\b|\bbreak down\b|\bteach\b/.test(q)) {
+      return { type: 'SCRIPTURE_MEAN', reference: scriptureRef[0] };
+    }
+  }
+  return { type: 'GENERAL' };
+}
+
+// ============================================================
 // KJV SCRIPTURE RETRIEVAL via API.Bible
 // ============================================================
 async function getKJVScripture(reference) {
@@ -1114,6 +1133,36 @@ function classifyTone(q) {
   return 'SEEKING';
 }
 
+// ============================================================
+// DIRECT GPT CALL  (added 2026-05-20)
+// Uses the file's existing fetch pattern (no openai SDK is imported);
+// model/temperature/max_tokens/messages are kept identical to the patch spec.
+// ============================================================
+async function callGPTDirect(prompt) {
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4',
+      temperature: 0.3,
+      max_tokens: 300,
+      messages: [
+        { role: 'system', content: 'You follow instructions exactly. You do not add unsolicited commentary. You do not soften your language. You do not paraphrase scripture.' },
+        { role: 'user', content: prompt },
+      ],
+    }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`OpenAI HTTP ${r.status}: ${t.slice(0, 200)}`);
+  }
+  const j = await r.json();
+  return j.choices?.[0]?.message?.content || '';
+}
+
 async function safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext = null, sessionPath = 'unset', sessionMem = null) {
 
   // Classify tone and extract user signal
@@ -1785,6 +1834,40 @@ export default async function handler(req, res) {
     // Pass current session memory into safeGenerate for path + escalation logic
     const liveMem = getMemory(sessionId);
     const currentPath = liveMem.currentPath || 'unset';
+
+    // Intent-aware scripture short-circuit (added 2026-05-20) — clean SAY/MEAN
+    // responses returned BEFORE main generation. Patch spec used `userQuestion`;
+    // the variable in this handler is `question` (destructured from req.body
+    // at the top of the handler). Patch spec also used `intent` — but this
+    // handler already has `const intent = detectIntent(question)` higher up
+    // (line ~1813), so we use `scriptIntent` to avoid a duplicate-declaration.
+    const scriptIntent = classifyIntent(question);
+    if (scriptIntent.type === 'SCRIPTURE_SAY') {
+      const verse = await getKJVScripture(scriptIntent.reference);
+      if (verse) {
+        return res.json({
+          response: `${verse.reference}\n\n"${verse.text}"\n\n— KJV`,
+        });
+      }
+    }
+    if (scriptIntent.type === 'SCRIPTURE_MEAN') {
+      const verse = await getKJVScripture(scriptIntent.reference);
+      if (verse) {
+        const forcedPrompt = `
+The user asked what ${verse.reference} means.
+The EXACT KJV text is: "${verse.text}"
+You MUST:
+1. Quote this verse EXACTLY as written above — do not change a single word
+2. Explain what it means in a direct, confrontational, non-religious tone
+3. No church fluff. No soft language. Speak like a direct teacher
+4. Keep it under 150 words after the quote
+Do NOT paraphrase the verse. Quote it exactly, then teach it.
+        `.trim();
+        const result = await callGPTDirect(forcedPrompt);
+        return res.json({ response: result });
+      }
+    }
+
     const { answer, toneClass, userSignal, detectionState, path, escalated } = await safeGenerate(question, systemPrompt, teachingContext, posture, conversationContext, currentPath, liveMem);
 
     // If escalation fired, mark it so it doesn't fire again next turn
