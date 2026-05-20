@@ -1141,6 +1141,7 @@ async function safeGenerate(question, systemPrompt, teachingContext, posture, co
     for (const match of scriptureMatches.slice(0, 3)) {
       const fullRef = match[0];
       const verse = await getKJVScripture(fullRef);
+      console.log('[KJV RESULT]', verse);
       if (verse) {
         scriptureContext += `\n\n[KJV Scripture: ${verse.reference}]\n${verse.text}`;
       }
