@@ -43,7 +43,7 @@ async function getKJVScripture(reference) {
     const numbers = reference.match(/(\d+):(\d+)/);
     const normalizedRef = numbers ? `${bookCode}.${numbers[1]}.${numbers[2]}` : reference;
     
-    const apiUrl = `https://api.scripture.api.bible/v1/bibles/${KJV_BIBLE_ID}/verses/${normalizedRef}?content-type=text`;
+    const apiUrl = `https://rest.api.bible/v1/bibles/${KJV_BIBLE_ID}/verses/${normalizedRef}?content-type=text`;
     
     const response = await fetch(apiUrl, {
       headers: {
