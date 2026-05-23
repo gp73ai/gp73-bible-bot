@@ -257,11 +257,14 @@ function validate(response, teaching, askedDirectQuote) {
   }
   if (respPolite > teachPolite + 2) reasons.push(`rule 6b: too polite (${respPolite} markers vs teaching ${teachPolite})`);
 
-  // Rule 7: must contain at least one bold declarative starting with You/That/God/The (no modal verb in first 4 words)
+  // Rule 7: must contain at least one bold declarative starting with one of the allowed
+  // teaching openers (no modal verb in first 4 words).
+  // RELAXED 2026-05-23: added When/Because/If/Faith/Christ/Word/Truth — real teaching
+  // doesn't always start with You/That/God/The.
   const sentences = r.split(/[.!?]/).map(s => s.trim()).filter(Boolean);
   let foundDeclarative = false;
   for (const s of sentences) {
-    if (/^(You|That|God|The)\s+/.test(s)) {
+    if (/^(You|That|God|The|When|Because|If|Faith|Christ|Word|Truth)\s+/.test(s)) {
       const first4 = s.split(/\s+/).slice(0, 4).join(' ').toLowerCase();
       if (!/\b(should|might|may|could|would)\b/.test(first4)) {
         foundDeclarative = true; break;
@@ -281,8 +284,9 @@ function buildMessages(question, teaching, extraDirective = '') {
     .map((fs, i) => `\n[Example ${i + 1} — from "${fs.sermon}"]\n${fs.text}`)
     .join('\n');
 
-  const teachingBlock = teaching && teaching.content
-    ? `\n\nTEACHING CONTEXT (you MUST quote at least one 8-word phrase from this word-for-word):\n[Sermon: ${teaching.sermon}]\n${teaching.content.slice(0, 4000)}`
+  const cleanedForLLM = teaching && teaching.content ? cleanContent(teaching.content).slice(0, 4000) : '';
+  const teachingBlock = cleanedForLLM
+    ? `\n\nTEACHING CONTEXT (you MUST quote at least one 8-word phrase from this word-for-word):\n[Sermon: ${teaching.sermon}]\n${cleanedForLLM}`
     : '\n\nTEACHING CONTEXT: (no specific sermon matched — use your voice rules and KJV scripture only; be brief and direct)';
 
   const systemContent = VOICE_SYSTEM_PROMPT + fewShotBlock + teachingBlock + (extraDirective ? `\n\nADDITIONAL DIRECTIVE: ${extraDirective}` : '');
@@ -311,7 +315,39 @@ async function callGPT(messages, temperature = 0.3) {
 }
 
 // ============================================================
-// 10. VERBATIM FALLBACK — zero LLM, paragraph from sermon as-is
+// 10a. CONTENT NORMALIZER — strip metadata noise from raw PDF extracts
+//
+// ADDED 2026-05-23: Supabase `documents.Content` carries PDF artifacts
+// (phone, email, sermon headers, standalone verse-number tokens). This
+// pre-processor cleans them so:
+//   - the LLM sees teaching text without noise (better quoting)
+//   - the verbatim fallback never leaks phone/email to the user
+// Actual scripture and teaching content is preserved.
+// ============================================================
+function cleanContent(text) {
+  if (!text) return '';
+  let c = text;
+  // strip US phone numbers — (407) 744-5122, 407-744-5122, 407.744.5122, 4077445122
+  c = c.replace(/\(?\b\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}\b/g, '');
+  // strip email addresses
+  c = c.replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '');
+  // strip standalone date stamps  MM-DD-YY / MM-DD-YYYY / MM/DD/YY / MM/DD/YYYY
+  c = c.replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b/g, '');
+  // strip sermon-header identity lines (ministry / author headers — NOT scripture)
+  c = c.replace(/^.*(City of Life Ministries|Godsprisoner|Apostle Sedrick|Apostle Angela|Dr\.\s+Sedrick).*$/gmi, '');
+  // strip standalone verse-number tokens left over from PDF extraction
+  //   e.g. "Jhn 5:26-\n26\nFor as the Father…" → drops the lone "26"
+  c = c.replace(/^\s*\d{1,3}-?\s*$/gm, '');
+  // collapse 3+ newlines → 2; collapse runs of spaces/tabs → single space
+  c = c.replace(/\n{3,}/g, '\n\n');
+  c = c.replace(/[ \t]{2,}/g, ' ');
+  // strip lines that are now empty after substitutions
+  c = c.split('\n').filter(line => line.trim().length > 0 || c.indexOf(line) === c.lastIndexOf(line)).join('\n');
+  return c.trim();
+}
+
+// ============================================================
+// 10b. VERBATIM FALLBACK — zero LLM, paragraph from sermon as-is
 // ============================================================
 function pickBestParagraph(teaching, question) {
   if (!teaching || !teaching.content) return null;
@@ -330,10 +366,22 @@ function pickBestParagraph(teaching, question) {
 
 // ============================================================
 // 11. INTENT — direct-quote vs explain (lightweight)
+//
+// FIX 2026-05-23: only trigger strict no-commentary mode when the user
+// asks for a SPECIFIC verse. Topic questions like "what does the Bible
+// say about faith" are NOT direct-quote requests — they want an answer.
 // ============================================================
+const KJV_BOOK_REF = /\b(genesis|exodus|leviticus|numbers|deuteronomy|joshua|judges|ruth|samuel|kings|chronicles|ezra|nehemiah|esther|job|psalms?|proverbs|ecclesiastes|song of solomon|isaiah|jeremiah|lamentations|ezekiel|daniel|hosea|joel|amos|obadiah|jonah|micah|nahum|habakkuk|zephaniah|haggai|zechariah|malachi|matthew|mark|luke|john|acts|romans|corinthians|galatians|ephesians|philippians|colossians|thessalonians|timothy|titus|philemon|hebrews|james|peter|jude|revelation)\s+\d+:\d+/i;
+
 function isDirectQuoteAsk(question) {
   const q = question.toLowerCase();
-  return /\b(quote|read|say|says|what does .* say|recite)\b/.test(q);
+  // Trigger 1: explicit verb-based ask
+  if (/\b(quote|recite)\b/.test(q)) return true;
+  if (/\bread me\b/.test(q)) return true;
+  if (/\bgive me the (verse|scripture|text)\b/.test(q)) return true;
+  // Trigger 2: explicit Book Chapter:Verse reference (e.g. "what does John 3:16 say")
+  if (KJV_BOOK_REF.test(q)) return true;
+  return false;
 }
 
 // ============================================================
@@ -382,9 +430,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // Step 3 — if all 3 failed → verbatim fallback
+  // Step 3 — if all 3 failed → verbatim fallback (cleaned of metadata noise)
   if (!finalAnswer) {
-    const verbatim = pickBestParagraph(teaching, question);
+    const rawParagraph = pickBestParagraph(teaching, question);
+    const verbatim = cleanContent(rawParagraph || '');
     if (verbatim) {
       const attribution = `\n\n— Pulled from: ${teaching.sermon} (verbatim — no AI rewrite, all 3 voice checks failed)`;
       console.log('[GP73 FALLBACK]', JSON.stringify({ ts: new Date().toISOString(), question, sermon: teaching.sermon, attempts: attemptsLog }));
