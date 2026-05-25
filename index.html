@@ -1110,11 +1110,28 @@
     // cards always visible
 
     try {
-      const res = await fetch('/api/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q, sessionId, tier: gp73Tier })
-      });
+      // GP73 2026-05-25: call voice-controlled /api/answer first.
+      // Safety net: any non-2xx (except 429) or network failure falls back to
+      // the original /api/ask so traffic never breaks. Existing 429 flow on
+      // /api/ask is preserved by passing it through unchanged.
+      let res;
+      try {
+        res = await fetch('/api/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q, sessionId, tier: gp73Tier })
+        });
+        if (!res.ok && res.status !== 429) {
+          throw new Error('/api/answer returned HTTP ' + res.status);
+        }
+      } catch (engineErr) {
+        console.warn('[GP73] /api/answer failed, falling back to /api/ask:', engineErr.message || engineErr);
+        res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: q, sessionId, tier: gp73Tier })
+        });
+      }
       const data = await res.json();
 
       if (res.status === 429) {

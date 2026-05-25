@@ -76,6 +76,28 @@ const POLITENESS_MARKERS = ['please', 'kindly', 'let\'s', 'we can', 'allow me to
 const STOP_WORDS = new Set(['what','is','the','a','an','of','to','in','and','or','for','do','does','how','why','when','who','are','was','were','be','been','i','my','me','you','your','we','they','it','this','that','can','will','have','has','had','not','no','but','about','on','with']);
 
 // ============================================================
+// 3b. SOURCE AUTHORITY HIERARCHY  (added 2026-05-25)
+// Retrieval must prefer authoritative sources over closest-similarity matches.
+// Higher boost = trusted more. When future Obsidian-Core (curated doctrine /
+// tone / declarations) rows exist, they dominate. Until then transcripts beat
+// noisy PDFs.
+// ============================================================
+const SOURCE_BOOSTS = {
+  'Obsidian-Core':            1.00,   // future: curated authoritative tier (RESERVED)
+  'Sermon-Transcript-Whisper':0.30,   // clean spoken Chief from 305 sermons
+  'PDF Upload':               0.00,   // existing baseline (PDF-noisy fallback)
+};
+function sourceBoost(src) { return SOURCE_BOOSTS[src] ?? 0; }
+
+// SPEAKER FILTER — exclude Apostle Angela's transcript chunks from retrieval
+// until Chief's tone layer stabilizes. driveFileId for transcript chunks is
+// shaped `<feed>-<chrono>-chunk-<idx>` so 'angela-…' identifies them.
+function isAngelaRow(row) {
+  const id = (row.driveFileId || row.drivefileid || row.drive_file_id || '');
+  return /^angela[-_]/i.test(id);
+}
+
+// ============================================================
 // 4. LAYER A — keyword retrieval (Obsidian-equivalent: Title/Summary/core_principles)
 // ============================================================
 async function queryLayerA(question) {
@@ -95,7 +117,8 @@ async function queryLayerA(question) {
     conds.push(`Title.ilike.${safe}`);
     conds.push(`Summary.ilike.${safe}`);
   }
-  const url = `${process.env.SUPABASE_URL}/rest/v1/documents?select=id,Title,Content,Summary,core_principles,Category&or=(${conds.join(',')})&limit=12`;
+  // Pull Source + driveFileId so we can apply source-authority rerank + Angela filter
+  const url = `${process.env.SUPABASE_URL}/rest/v1/documents?select=id,Title,Content,Summary,core_principles,Category,Source,driveFileId&or=(${conds.join(',')})&limit=30`;
 
   try {
     const r = await fetch(url, {
@@ -108,27 +131,35 @@ async function queryLayerA(question) {
     const rows = await r.json();
     if (!Array.isArray(rows) || !rows.length) return null;
 
-    // Score each row by how many terms it matches in Title (weighted 3x) + Summary (1x)
-    const scored = rows.map(row => {
-      const title = (row.Title || '').toLowerCase();
-      const summary = (row.Summary || '').toLowerCase();
-      let score = 0;
-      for (const t of terms) {
-        if (title.includes(t)) score += 3;
-        if (summary.includes(t)) score += 1;
-      }
-      return { row, score };
-    }).sort((a, b) => b.score - a.score);
+    // Score each row by keyword hits, then apply Angela filter + source-authority boost.
+    // Combined score = keyword_score + (sourceBoost * 10) so source preference is
+    // strong but doesn't fully drown out a clearly more-relevant keyword match.
+    const scored = rows
+      .filter(row => !isAngelaRow(row))
+      .map(row => {
+        const title = (row.Title || '').toLowerCase();
+        const summary = (row.Summary || '').toLowerCase();
+        let kwScore = 0;
+        for (const t of terms) {
+          if (title.includes(t)) kwScore += 3;
+          if (summary.includes(t)) kwScore += 1;
+        }
+        const combined = kwScore + sourceBoost(row.Source) * 10;
+        return { row, kwScore, combined };
+      })
+      .filter(s => s.kwScore >= 2)  // still require real keyword relevance
+      .sort((a, b) => b.combined - a.combined);
 
     const top = scored[0];
-    if (!top || top.score < 2) return null; // require at least 2 weighted hits
+    if (!top) return null;
     return {
       source: 'layerA-keyword',
       sermon: top.row.Title || 'Untitled',
       content: top.row.Content || top.row.Summary || '',
       summary: top.row.Summary || '',
       category: top.row.Category || '',
-      score: top.score,
+      score: top.combined,
+      doc_source: top.row.Source || 'unknown',
     };
   } catch (e) {
     console.warn('[GP73 ANSWER] LayerA error:', e.message);
@@ -159,12 +190,26 @@ async function queryLayerB(question) {
         apikey: process.env.SUPABASE_ANON_KEY,
         Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
       },
-      body: JSON.stringify({ query_embedding: embedding, match_count: 5 }),
+      // pull 15 candidates so the rerank has room (was 5)
+      body: JSON.stringify({ query_embedding: embedding, match_count: 15 }),
     });
     if (!r.ok) return null;
     const docs = await r.json();
     if (!Array.isArray(docs) || !docs.length) return null;
-    const top = docs.filter(d => (d.similarity || 0) >= 0.35)[0];
+
+    // Filter Angela + similarity threshold, then re-rank by (similarity + sourceBoost).
+    // Source boost can dominate: a 0.50 transcript chunk beats a 0.70 PDF chunk
+    // (0.50 + 0.30 = 0.80 vs 0.70 + 0.00 = 0.70). That's by design — authority
+    // wins when boost differentiates. Pure similarity still wins inside one tier.
+    const reranked = docs
+      .filter(d => !isAngelaRow(d))
+      .filter(d => (d.similarity || 0) >= 0.35)
+      .map(d => ({
+        row: d,
+        combined: (d.similarity || 0) + sourceBoost(d.Source || d.source),
+      }))
+      .sort((a, b) => b.combined - a.combined);
+    const top = reranked[0]?.row;
     if (!top) return null;
     return {
       source: 'layerB-embedding',
@@ -173,6 +218,7 @@ async function queryLayerB(question) {
       summary: top.Summary || top.summary || '',
       category: top.Category || top.category || '',
       similarity: top.similarity,
+      doc_source: top.Source || top.source || 'unknown',
     };
   } catch (e) {
     console.warn('[GP73 ANSWER] LayerB error:', e.message);
