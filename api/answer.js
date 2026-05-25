@@ -76,18 +76,23 @@ const POLITENESS_MARKERS = ['please', 'kindly', 'let\'s', 'we can', 'allow me to
 const STOP_WORDS = new Set(['what','is','the','a','an','of','to','in','and','or','for','do','does','how','why','when','who','are','was','were','be','been','i','my','me','you','your','we','they','it','this','that','can','will','have','has','had','not','no','but','about','on','with']);
 
 // ============================================================
-// 3b. SOURCE AUTHORITY HIERARCHY  (added 2026-05-25)
-// Retrieval must prefer authoritative sources over closest-similarity matches.
-// Higher boost = trusted more. When future Obsidian-Core (curated doctrine /
-// tone / declarations) rows exist, they dominate. Until then transcripts beat
-// noisy PDFs.
+// 3b. SOURCE AUTHORITY HIERARCHY — HARD-TIER PREFERENCE  (revised 2026-05-25)
+//
+// Retrieval is AUTHORITY-DRIVEN, not similarity-driven. The tiers below are
+// walked in order; the first tier with a qualifying match wins. Pure
+// semantic similarity only breaks ties WITHIN a tier — never ACROSS tiers.
+// A 0.40-similarity transcript chunk beats a 0.95-similarity PDF chunk.
+// This implements the doctrine: "authority over closeness."
 // ============================================================
 const SOURCE_BOOSTS = {
-  'Obsidian-Core':            1.00,   // future: curated authoritative tier (RESERVED)
-  'Sermon-Transcript-Whisper':0.30,   // clean spoken Chief from 305 sermons
-  'PDF Upload':               0.00,   // existing baseline (PDF-noisy fallback)
+  'Obsidian-Core':             1.00,  // future: curated authoritative tier (RESERVED — Chief's doctrine, tone, declarations)
+  'Sermon-Transcript-Whisper': 0.30,  // clean spoken Chief from 305 sermons
+  'PDF Upload':                0.00,  // existing baseline (PDF-noisy last-resort)
 };
-function sourceBoost(src) { return SOURCE_BOOSTS[src] ?? 0; }
+// Ordered authoritative source list (highest authority first)
+const TIER_ORDER = Object.entries(SOURCE_BOOSTS)
+  .sort(([,a],[,b]) => b - a)
+  .map(([src]) => src);
 
 // SPEAKER FILTER — exclude Apostle Angela's transcript chunks from retrieval
 // until Chief's tone layer stabilizes. driveFileId for transcript chunks is
@@ -117,8 +122,8 @@ async function queryLayerA(question) {
     conds.push(`Title.ilike.${safe}`);
     conds.push(`Summary.ilike.${safe}`);
   }
-  // Pull Source + driveFileId so we can apply source-authority rerank + Angela filter
-  const url = `${process.env.SUPABASE_URL}/rest/v1/documents?select=id,Title,Content,Summary,core_principles,Category,Source,driveFileId&or=(${conds.join(',')})&limit=30`;
+  // Pull a wide candidate pool (50) so the hard-tier walk has room across all sources.
+  const url = `${process.env.SUPABASE_URL}/rest/v1/documents?select=id,Title,Content,Summary,core_principles,Category,Source,driveFileId&or=(${conds.join(',')})&limit=50`;
 
   try {
     const r = await fetch(url, {
@@ -131,10 +136,8 @@ async function queryLayerA(question) {
     const rows = await r.json();
     if (!Array.isArray(rows) || !rows.length) return null;
 
-    // Score each row by keyword hits, then apply Angela filter + source-authority boost.
-    // Combined score = keyword_score + (sourceBoost * 10) so source preference is
-    // strong but doesn't fully drown out a clearly more-relevant keyword match.
-    const scored = rows
+    // Universal: filter Angela and require real keyword relevance (>= 2 weighted hits)
+    const eligible = rows
       .filter(row => !isAngelaRow(row))
       .map(row => {
         const title = (row.Title || '').toLowerCase();
@@ -144,22 +147,44 @@ async function queryLayerA(question) {
           if (title.includes(t)) kwScore += 3;
           if (summary.includes(t)) kwScore += 1;
         }
-        const combined = kwScore + sourceBoost(row.Source) * 10;
-        return { row, kwScore, combined };
+        return { row, kwScore };
       })
-      .filter(s => s.kwScore >= 2)  // still require real keyword relevance
-      .sort((a, b) => b.combined - a.combined);
+      .filter(s => s.kwScore >= 2);
 
-    const top = scored[0];
-    if (!top) return null;
+    if (!eligible.length) return null;
+
+    // HARD-TIER WALK: try each authoritative source in order; first tier with a
+    // qualifying match WINS. Within a tier, highest keyword score breaks the tie.
+    for (const tier of TIER_ORDER) {
+      const inTier = eligible
+        .filter(s => s.row.Source === tier)
+        .sort((a, b) => b.kwScore - a.kwScore);
+      if (inTier.length) {
+        const top = inTier[0];
+        return {
+          source: 'layerA-keyword',
+          sermon: top.row.Title || 'Untitled',
+          content: top.row.Content || top.row.Summary || '',
+          summary: top.row.Summary || '',
+          category: top.row.Category || '',
+          score: top.kwScore,
+          doc_source: top.row.Source || 'unknown',
+          tier_used: tier,
+        };
+      }
+    }
+    // Eligible rows exist but none belong to a known tier — last-resort, highest kw
+    eligible.sort((a, b) => b.kwScore - a.kwScore);
+    const top = eligible[0];
     return {
       source: 'layerA-keyword',
       sermon: top.row.Title || 'Untitled',
       content: top.row.Content || top.row.Summary || '',
       summary: top.row.Summary || '',
       category: top.row.Category || '',
-      score: top.combined,
+      score: top.kwScore,
       doc_source: top.row.Source || 'unknown',
+      tier_used: 'unknown',
     };
   } catch (e) {
     console.warn('[GP73 ANSWER] LayerA error:', e.message);
@@ -190,27 +215,43 @@ async function queryLayerB(question) {
         apikey: process.env.SUPABASE_ANON_KEY,
         Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
       },
-      // pull 15 candidates so the rerank has room (was 5)
-      body: JSON.stringify({ query_embedding: embedding, match_count: 15 }),
+      // Wide candidate pool (50) — hard-tier walk needs room across all sources
+      body: JSON.stringify({ query_embedding: embedding, match_count: 50 }),
     });
     if (!r.ok) return null;
     const docs = await r.json();
     if (!Array.isArray(docs) || !docs.length) return null;
 
-    // Filter Angela + similarity threshold, then re-rank by (similarity + sourceBoost).
-    // Source boost can dominate: a 0.50 transcript chunk beats a 0.70 PDF chunk
-    // (0.50 + 0.30 = 0.80 vs 0.70 + 0.00 = 0.70). That's by design — authority
-    // wins when boost differentiates. Pure similarity still wins inside one tier.
-    const reranked = docs
+    // Universal filter: drop Angela rows + enforce minimum similarity threshold
+    const eligible = docs
       .filter(d => !isAngelaRow(d))
-      .filter(d => (d.similarity || 0) >= 0.35)
-      .map(d => ({
-        row: d,
-        combined: (d.similarity || 0) + sourceBoost(d.Source || d.source),
-      }))
-      .sort((a, b) => b.combined - a.combined);
-    const top = reranked[0]?.row;
-    if (!top) return null;
+      .filter(d => (d.similarity || 0) >= 0.35);
+    if (!eligible.length) return null;
+
+    // HARD-TIER WALK: walk authoritative sources in order. First tier with any
+    // qualifying match WINS. Within a tier, highest similarity breaks ties.
+    // A 0.40 transcript chunk beats a 0.95 PDF chunk — by design.
+    for (const tier of TIER_ORDER) {
+      const inTier = eligible
+        .filter(d => (d.Source || d.source) === tier)
+        .sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+      if (inTier.length) {
+        const top = inTier[0];
+        return {
+          source: 'layerB-embedding',
+          sermon: top.Title || top.title || 'Untitled',
+          content: top.Content || top.content || '',
+          summary: top.Summary || top.summary || '',
+          category: top.Category || top.category || '',
+          similarity: top.similarity,
+          doc_source: top.Source || top.source || 'unknown',
+          tier_used: tier,
+        };
+      }
+    }
+    // Eligible rows but none in a known tier — last-resort highest similarity
+    eligible.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+    const top = eligible[0];
     return {
       source: 'layerB-embedding',
       sermon: top.Title || top.title || 'Untitled',
@@ -219,6 +260,7 @@ async function queryLayerB(question) {
       category: top.Category || top.category || '',
       similarity: top.similarity,
       doc_source: top.Source || top.source || 'unknown',
+      tier_used: 'unknown',
     };
   } catch (e) {
     console.warn('[GP73 ANSWER] LayerB error:', e.message);
