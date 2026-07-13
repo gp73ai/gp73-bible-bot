@@ -1,10 +1,11 @@
-
 {
   "routes": [
     { "handle": "filesystem" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/choose-your-path", "dest": "/choose-your-path.html" },
+    { "src": "/store", "dest": "/store.html" },
+    { "src": "/store/([^/]+)", "dest": "/store-product.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
