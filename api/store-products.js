@@ -44,6 +44,7 @@ export default async function handler(req, res) {
       `${SUPABASE_URL}/rest/v1/products?select=id,brand_slug,slug,category,product_type,display_name,short_description,long_description,benefits,cover_image,preview_asset,status,ordinal,offers(price_usd,price_label,offer_type,active)` +
       `&brand_slug=eq.${encodeURIComponent(brand)}` +
       `&status=in.(active,coming_soon)` +
+            `&category=neq.internal_test` +
       `&order=ordinal.asc`;
 
     if (category) {
