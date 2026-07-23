@@ -4,6 +4,10 @@
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/dashboard", "dest": "/dashboard.html" },
     { "src": "/choose-your-path", "dest": "/choose-your-path.html" },
+    { "src": "/free/foundation-audit/thank-you", "dest": "/foundation-audit-thank-you.html" },
+    { "src": "/free/foundation-audit", "dest": "/foundation-audit.html" },
+    { "src": "/privacy", "dest": "/privacy.html" },
+    { "src": "/terms", "dest": "/terms.html" },
     { "src": "/store", "dest": "/store.html" },
     { "src": "/store/([^/]+)", "dest": "/store-product.html" },
     { "src": "/(.*)", "dest": "/index.html" }

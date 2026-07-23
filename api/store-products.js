@@ -81,8 +81,40 @@ export default async function handler(req, res) {
         preview_asset: p.preview_asset,
         category: p.category,
         status: p.status,
+        landing_path: null,
+        is_free_resource: false,
       };
     });
+
+    const resourcesUrl =
+      `${SUPABASE_URL}/rest/v1/free_resources?select=brand_slug,slug,title,short_description,category,cover_image_path,landing_path,active` +
+      `&brand_slug=eq.${encodeURIComponent(brand)}` +
+      `&active=eq.true` +
+      `&order=created_at.desc`;
+
+    const resourcesResponse = await fetch(resourcesUrl, { headers });
+    if (resourcesResponse.ok) {
+      const resources = await resourcesResponse.json();
+      resources.forEach((resource) => {
+        products.push({
+          slug: resource.slug,
+          brand_slug: resource.brand_slug,
+          display_name: resource.title,
+          short_description: resource.short_description,
+          long_description: resource.short_description,
+          benefits: [],
+          price_usd: 0,
+          price_label: "Free",
+          product_type: "free_resource",
+          cover_image: resource.cover_image_path,
+          preview_asset: null,
+          category: resource.category,
+          status: "active",
+          landing_path: resource.landing_path,
+          is_free_resource: true,
+        });
+      });
+    }
 
     return res.status(200).json({
       success: true,

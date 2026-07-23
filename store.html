@@ -211,18 +211,20 @@
     gridEl.innerHTML = "";
     filtered.forEach(p => {
       const card = document.createElement("a");
-      card.href = "/store/" + p.slug + (brandSlug ? ("?brand=" + brandSlug) : "");
+      card.href = p.is_free_resource && p.landing_path
+        ? p.landing_path
+        : "/store/" + p.slug + (brandSlug ? ("?brand=" + brandSlug) : "");
       card.className = "product-card";
       card.innerHTML =
         '<img class="cover" src="' + p.cover_image + '" alt="' + p.display_name + '" onerror="this.style.display=\'none\'" />' +
         '<div class="body">' +
           (p.status === "coming_soon" ? '<div class="status-pill">Coming Soon</div>' : '') +
-          '<div class="kind-badge">' + p.product_type.replace("_"," ") + '</div>' +
+          '<div class="kind-badge">' + p.product_type.replaceAll("_"," ") + '</div>' +
           '<h3>' + p.display_name + '</h3>' +
           '<p>' + p.short_description + '</p>' +
           '<div class="price-row">' +
             '<div class="price">' + money(p) + '</div>' +
-            '<div class="view-btn">View &rarr;</div>' +
+            '<div class="view-btn">' + (p.is_free_resource ? "Get Free" : "View") + ' &rarr;</div>' +
           '</div>' +
         '</div>';
       gridEl.appendChild(card);

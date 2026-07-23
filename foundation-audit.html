@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="A free ten-minute, four-law diagnostic for what your Bible study and your week are really built on." />
+<meta property="og:title" content="The Foundation Audit | GP73" />
+<meta property="og:description" content="Find out whether you are building discernment or collecting verses and calling it study." />
+<meta property="og:image" content="/assets/free/foundation-audit-cover.png" />
+<title>The Foundation Audit | GP73</title>
+<link rel="icon" href="/GPlogo.png" />
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Libre+Caslon+Display&display=swap");
+
+  :root{
+    --black:#080808;
+    --black-soft:#11100d;
+    --gold:#f3cc22;
+    --gold-deep:#ba9110;
+    --ivory:#f7f0df;
+    --white:#fffdf8;
+    --muted:#b9b1a0;
+    --border:rgba(247,240,223,.18);
+    --error:#ff8d86;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    min-height:100vh;
+    overflow-x:hidden;
+    background:var(--black);
+    color:var(--ivory);
+    font-family:"DM Sans",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  button,input{font:inherit}
+
+  .page{
+    position:relative;
+    min-height:100vh;
+    isolation:isolate;
+    overflow:hidden;
+  }
+  .page::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-2;
+    background:
+      radial-gradient(circle at 82% 16%,rgba(243,204,34,.14),transparent 25%),
+      radial-gradient(circle at 12% 84%,rgba(243,204,34,.06),transparent 30%),
+      linear-gradient(135deg,var(--black),var(--black-soft));
+  }
+  .page::after{
+    content:"GP73";
+    position:absolute;
+    right:-.08em;
+    bottom:-.2em;
+    z-index:-1;
+    color:rgba(247,240,223,.025);
+    font-family:"Libre Caslon Display",Georgia,serif;
+    font-size:clamp(9rem,24vw,24rem);
+    line-height:.8;
+    pointer-events:none;
+  }
+
+  .nav{
+    width:min(1180px,calc(100% - 40px));
+    margin:0 auto;
+    padding:22px 0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+  }
+  .brand img{width:42px;height:42px;object-fit:contain}
+  .brand-copy{display:grid;gap:2px}
+  .brand-name{
+    color:var(--gold);
+    font-weight:700;
+    letter-spacing:.12em;
+  }
+  .brand-sub{
+    color:var(--muted);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .free-label{
+    color:var(--gold);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+
+  main{
+    width:min(1180px,calc(100% - 40px));
+    margin:0 auto;
+    padding:clamp(48px,8vw,100px) 0 42px;
+  }
+  .hero{
+    display:grid;
+    grid-template-columns:minmax(0,1.08fr) minmax(280px,.72fr);
+    gap:clamp(42px,8vw,110px);
+    align-items:center;
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+    color:var(--gold);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.17em;
+    text-transform:uppercase;
+  }
+  .eyebrow::before{content:"";width:46px;height:2px;background:var(--gold)}
+  h1{
+    max-width:720px;
+    margin-bottom:24px;
+    color:var(--white);
+    font-family:"Libre Caslon Display",Georgia,serif;
+    font-size:clamp(44px,6.6vw,86px);
+    font-weight:400;
+    line-height:.96;
+    letter-spacing:-.035em;
+  }
+  h1 em{color:var(--gold);font-weight:400}
+  .lede{
+    max-width:640px;
+    margin-bottom:30px;
+    color:var(--muted);
+    font-size:clamp(17px,2vw,21px);
+    line-height:1.62;
+  }
+
+  .form{
+    max-width:650px;
+    padding:20px;
+    border:1px solid var(--border);
+    background:rgba(255,253,248,.035);
+    backdrop-filter:blur(12px);
+  }
+  .fields{
+    display:grid;
+    grid-template-columns:.8fr 1.2fr;
+    gap:12px;
+  }
+  label{
+    display:grid;
+    gap:8px;
+    color:var(--ivory);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+  input{
+    min-width:0;
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:0;
+    padding:14px 15px;
+    background:rgba(255,253,248,.06);
+    color:var(--white);
+    outline:none;
+  }
+  input::placeholder{color:#8f897c}
+  input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(243,204,34,.12)}
+  .honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+  .submit{
+    width:100%;
+    margin-top:12px;
+    border:0;
+    padding:16px 20px;
+    background:var(--gold);
+    color:#050505;
+    font-weight:700;
+    letter-spacing:.02em;
+    cursor:pointer;
+    transition:transform .16s ease,background .16s ease;
+  }
+  .submit:hover{transform:translateY(-1px);background:#ffdc36}
+  .submit:disabled{opacity:.62;cursor:wait;transform:none}
+  .form-meta{
+    display:flex;
+    justify-content:space-between;
+    gap:18px;
+    margin-top:12px;
+    color:#918a7c;
+    font-size:11px;
+    line-height:1.5;
+  }
+  .form-meta a{text-underline-offset:3px}
+  .form-message{min-height:20px;margin-top:10px;color:var(--error);font-size:13px}
+
+  .product-stage{
+    position:relative;
+    min-height:520px;
+    display:grid;
+    place-items:center;
+  }
+  .product-stage::before,
+  .product-stage::after{
+    content:"";
+    position:absolute;
+    width:min(72%,310px);
+    aspect-ratio:.725;
+    border:1px solid var(--border);
+  }
+  .product-stage::before{
+    transform:rotate(-8deg) translate(-10px,9px);
+    background:rgba(247,240,223,.06);
+  }
+  .product-stage::after{
+    transform:rotate(7deg) translate(11px,5px);
+    background:rgba(243,204,34,.06);
+  }
+  .cover{
+    position:relative;
+    z-index:2;
+    display:block;
+    width:min(72%,310px);
+    height:auto;
+    border:1px solid rgba(247,240,223,.28);
+    box-shadow:0 38px 90px rgba(0,0,0,.68);
+    transform:rotate(-1.5deg);
+  }
+  .cover-note{
+    position:absolute;
+    z-index:3;
+    right:0;
+    bottom:18%;
+    max-width:150px;
+    padding:12px;
+    border-left:3px solid var(--gold);
+    background:var(--ivory);
+    color:#17140d;
+    font-size:12px;
+    line-height:1.4;
+    box-shadow:0 18px 46px rgba(0,0,0,.38);
+  }
+  .cover-note strong{display:block;color:#090909;font-size:15px}
+
+  .outcomes{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:26px;
+    margin-top:clamp(60px,9vw,110px);
+    padding-top:28px;
+    border-top:1px solid var(--border);
+  }
+  .outcome-number{
+    display:block;
+    margin-bottom:11px;
+    color:var(--gold);
+    font-family:"Libre Caslon Display",Georgia,serif;
+    font-size:28px;
+  }
+  .outcome h2{margin-bottom:8px;color:var(--white);font-size:17px}
+  .outcome p{color:var(--muted);font-size:14px;line-height:1.58}
+
+  footer{
+    width:min(1180px,calc(100% - 40px));
+    margin:0 auto;
+    padding:24px 0 34px;
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    border-top:1px solid var(--border);
+    color:#8e877a;
+    font-size:12px;
+  }
+  .footer-links{display:flex;gap:18px;flex-wrap:wrap}
+  footer a{text-underline-offset:3px}
+  .bia-link{color:var(--ivory);font-weight:700;text-decoration-color:var(--gold)}
+
+  @media(max-width:860px){
+    .hero{grid-template-columns:1fr}
+    .product-stage{min-height:440px}
+    .cover-note{right:8%}
+  }
+  @media(max-width:620px){
+    .nav{width:min(100% - 28px,1180px);padding:16px 0}
+    .brand-sub{display:none}
+    .free-label{font-size:9px}
+    main{width:min(100% - 28px,1180px);padding-top:44px}
+    .fields,.outcomes{grid-template-columns:1fr}
+    .form{padding:15px}
+    .form-meta{flex-direction:column;gap:6px}
+    .product-stage{min-height:390px}
+    .cover-note{right:0;bottom:10%;max-width:135px}
+    footer{width:min(100% - 28px,1180px);flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav" aria-label="Main navigation">
+    <a class="brand" href="/">
+      <img src="/GPlogo.png" alt="GP73" />
+      <span class="brand-copy">
+        <span class="brand-name">GP73</span>
+        <span class="brand-sub">Bible Intelligence Agency</span>
+      </span>
+    </a>
+    <span class="free-label">Free guided diagnostic</span>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="eyebrow">The Foundation Audit</span>
+        <h1>A ten-minute, four-law <em>diagnostic</em> for what your Bible study and your week are really built on.</h1>
+        <p class="lede">Are you building discernment, or collecting verses and calling it study? Audit the last seven days and see what your current habits are actually producing.</p>
+
+        <form class="form" id="foundation-audit-form" novalidate>
+          <div class="fields">
+            <label>
+              First name
+              <input name="first_name" autocomplete="given-name" maxlength="80" placeholder="First name" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" maxlength="254" placeholder="Email address" required />
+            </label>
+          </div>
+          <label class="honeypot" aria-hidden="true">
+            Company
+            <input name="company" tabindex="-1" autocomplete="off" />
+          </label>
+          <button class="submit" id="submit-button" type="submit">SEND ME THE FREE FOUNDATION AUDIT</button>
+          <div class="form-meta">
+            <span>Free PDF. Immediate access. Unsubscribe anytime.</span>
+            <span>By continuing, you agree to receive relevant email. <a href="/privacy">Privacy</a></span>
+          </div>
+          <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <div class="product-stage" aria-label="The Foundation Audit PDF">
+        <img class="cover" src="/assets/free/foundation-audit-cover.png" alt="The Foundation Audit PDF cover" />
+        <div class="cover-note"><strong>4 laws</strong>One clear view of what your study habits are producing.</div>
+      </div>
+    </section>
+
+    <section class="outcomes" aria-label="What the audit helps you do">
+      <article class="outcome">
+        <span class="outcome-number">01</span>
+        <h2>Audit the last seven days</h2>
+        <p>Measure what your real study habits, not your intentions, have produced.</p>
+      </article>
+      <article class="outcome">
+        <span class="outcome-number">02</span>
+        <h2>Expose weak foundations</h2>
+        <p>See where information is replacing discernment, obedience, and formation.</p>
+      </article>
+      <article class="outcome">
+        <span class="outcome-number">03</span>
+        <h2>Choose the next right step</h2>
+        <p>Leave with a focused action for strengthening how you study and live.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Godsprisoner. All rights reserved.</span>
+    <span class="footer-links">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a class="bia-link" href="/store">Go deeper with the Bible Intelligence Agency</a>
+    </span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById("foundation-audit-form");
+  const button = document.getElementById("submit-button");
+  const message = document.getElementById("form-message");
+  const params = new URLSearchParams(window.location.search);
+
+  const tracking = {
+    brand: "gp73",
+    creator: clean(params.get("creator") || "sedrick-davis", 80),
+    acquisition_source: clean(params.get("source") || params.get("utm_source") || "youtube", 80),
+    video_id: clean(params.get("video") || params.get("video_id") || "", 120),
+    campaign: clean(params.get("campaign") || params.get("utm_campaign") || "foundation-audit", 120),
+    utm_source: clean(params.get("utm_source") || "", 120),
+    utm_medium: clean(params.get("utm_medium") || "", 120),
+    utm_campaign: clean(params.get("utm_campaign") || "", 120),
+    utm_content: clean(params.get("utm_content") || "", 120)
+  };
+
+  function clean(value, max) {
+    return String(value || "").trim().slice(0, max);
+  }
+
+  form.addEventListener("submit", async function(event){
+    event.preventDefault();
+    message.textContent = "";
+
+    const formData = new FormData(form);
+    const firstName = clean(formData.get("first_name"), 80);
+    const email = clean(formData.get("email"), 254);
+
+    if (!firstName || !email || !email.includes("@")) {
+      message.textContent = "Enter your first name and a valid email address.";
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "PREPARING YOUR AUDIT...";
+
+    try {
+      const response = await fetch("/api/free-resource-capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          email,
+          company: clean(formData.get("company"), 120),
+          resource_slug: "foundation-audit",
+          consent: true,
+          page_path: window.location.pathname,
+          referrer: clean(document.referrer, 500),
+          ...tracking
+        })
+      });
+
+      const data = await response.json().catch(function(){ return {}; });
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "We could not prepare your audit right now.");
+      }
+
+      const query = new URLSearchParams({
+        first_name: firstName,
+        source: tracking.acquisition_source,
+        campaign: tracking.campaign
+      });
+      window.location.href = "/free/foundation-audit/thank-you?" + query.toString();
+    } catch (error) {
+      message.textContent = error && error.message ? error.message : "Please try again.";
+      button.disabled = false;
+      button.textContent = "SEND ME THE FREE FOUNDATION AUDIT";
+    }
+  });
+})();
+</script>
+</body>
+</html>
