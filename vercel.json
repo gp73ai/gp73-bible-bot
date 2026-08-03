@@ -6,6 +6,8 @@
     { "src": "/choose-your-path", "dest": "/choose-your-path.html" },
     { "src": "/free/foundation-audit/thank-you", "dest": "/foundation-audit-thank-you.html" },
     { "src": "/free/foundation-audit", "dest": "/foundation-audit.html" },
+    { "src": "/free/truth-detector/thank-you", "dest": "/truth-detector-thank-you.html" },
+    { "src": "/free/truth-detector", "dest": "/truth-detector.html" },
     { "src": "/privacy", "dest": "/privacy.html" },
     { "src": "/terms", "dest": "/terms.html" },
     { "src": "/store", "dest": "/store.html" },
