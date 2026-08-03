@@ -4,9 +4,27 @@ export const config = {
 
 const KIT_API_BASE = "https://api.kit.com/v4";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ALLOWED_RESOURCES = new Set(["foundation-audit"]);
 const ALLOWED_BRANDS = new Set(["gp73"]);
 const MAX_BODY_BYTES = 16_384;
+
+const RESOURCE_CONFIG = {
+  "foundation-audit": {
+    tagEnv: "KIT_FOUNDATION_AUDIT_TAG_ID",
+    sequenceEnv: "KIT_FOUNDATION_AUDIT_DELIVERY_SEQUENCE_ID",
+    defaultCampaign: "foundation-audit",
+    defaultPagePath: "/free/foundation-audit",
+    inactiveMessage: "The Foundation Audit delivery system is not active yet.",
+    errorMessage: "We could not prepare your Foundation Audit right now. Please try again.",
+  },
+  "truth-detector": {
+    tagEnv: "KIT_TRUTH_DETECTOR_TAG_ID",
+    sequenceEnv: "KIT_TRUTH_DETECTOR_DELIVERY_SEQUENCE_ID",
+    defaultCampaign: "truth-detector",
+    defaultPagePath: "/free/truth-detector",
+    inactiveMessage: "The Truth Detector delivery system is not active yet.",
+    errorMessage: "We could not prepare your Truth Detector breakdown right now. Please try again.",
+  },
+};
 
 function text(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
@@ -119,15 +137,17 @@ export default async function handler(req, res) {
     });
   }
 
-  if (!ALLOWED_RESOURCES.has(resourceSlug) || !ALLOWED_BRANDS.has(brand)) {
+  const resourceConfig = RESOURCE_CONFIG[resourceSlug];
+
+  if (!resourceConfig || !ALLOWED_BRANDS.has(brand)) {
     return res.status(404).json({ success: false, message: "Resource not found" });
   }
 
   const runtime = {
     kitApiKey: process.env.KIT_API_KEY,
-    kitDeliverySequenceId: process.env.KIT_FOUNDATION_AUDIT_DELIVERY_SEQUENCE_ID,
+    kitDeliverySequenceId: process.env[resourceConfig.sequenceEnv],
     kitNurtureSequenceId: process.env.KIT_FREE_RESOURCE_NURTURE_SEQUENCE_ID,
-    kitResourceTagId: process.env.KIT_FOUNDATION_AUDIT_TAG_ID,
+    kitResourceTagId: process.env[resourceConfig.tagEnv],
     kitSourceTagId: process.env.KIT_SOURCE_YOUTUBE_TAG_ID,
     kitCreatorTagId: process.env.KIT_CREATOR_SEDRICK_TAG_ID,
     supabaseUrl: process.env.SUPABASE_URL,
@@ -136,8 +156,8 @@ export default async function handler(req, res) {
 
   const missing = Object.entries({
     KIT_API_KEY: runtime.kitApiKey,
-    KIT_FOUNDATION_AUDIT_DELIVERY_SEQUENCE_ID: runtime.kitDeliverySequenceId,
-    KIT_FOUNDATION_AUDIT_TAG_ID: runtime.kitResourceTagId,
+    [resourceConfig.sequenceEnv]: runtime.kitDeliverySequenceId,
+    [resourceConfig.tagEnv]: runtime.kitResourceTagId,
     SUPABASE_URL: runtime.supabaseUrl,
     SUPABASE_SERVICE_ROLE_KEY: runtime.supabaseServiceKey,
   })
@@ -147,7 +167,7 @@ export default async function handler(req, res) {
   if (missing.length) {
     return res.status(503).json({
       success: false,
-      message: "The Foundation Audit delivery system is not active yet.",
+      message: resourceConfig.inactiveMessage,
     });
   }
 
@@ -160,12 +180,12 @@ export default async function handler(req, res) {
     creator_slug: text(body.creator || "sedrick-davis", 80),
     acquisition_source: text(body.acquisition_source || "youtube", 80),
     video_id: text(body.video_id, 120) || null,
-    campaign: text(body.campaign || "foundation-audit", 120),
+    campaign: text(body.campaign || resourceConfig.defaultCampaign, 120),
     utm_source: text(body.utm_source, 120) || null,
     utm_medium: text(body.utm_medium, 120) || null,
     utm_campaign: text(body.utm_campaign, 120) || null,
     utm_content: text(body.utm_content, 120) || null,
-    page_path: text(body.page_path, 240) || "/free/foundation-audit",
+    page_path: text(body.page_path, 240) || resourceConfig.defaultPagePath,
     referrer: text(body.referrer, 500) || null,
     consent_at: now,
     last_requested_at: now,
@@ -267,7 +287,7 @@ export default async function handler(req, res) {
 
     return res.status(502).json({
       success: false,
-      message: "We could not prepare your Foundation Audit right now. Please try again.",
+      message: resourceConfig.errorMessage,
     });
   }
 }
