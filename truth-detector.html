@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Answer 8 quick questions and get your Truth Detector score, showing how well you actually test what you hear against Scripture." />
+<title>The Truth Detector | GP73</title>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Libre+Caslon+Display&display=swap");
+
+:root{
+  --black:#080808;
+  --black-soft:#11100d;
+  --teal:#2fd6c8;
+  --teal-deep:#17a89d;
+  --ivory:#f7f0df;
+  --white:#fffdf8;
+  --muted:#b9b1a0;
+  --border:rgba(247,240,223,.18);
+  --error:#ff8d86;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  background:var(--black);
+  color:var(--ivory);
+  font-family:"DM Sans",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+button,input{font:inherit}
+
+.page{
+  position:relative;
+  min-height:100vh;
+  isolation:isolate;
+  overflow:hidden;
+}
+.page::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background:
+    radial-gradient(circle at 82% 16%,rgba(47,214,200,.14),transparent 25%),
+    radial-gradient(circle at 12% 84%,rgba(47,214,200,.06),transparent 30%),
+    linear-gradient(135deg,var(--black),var(--black-soft));
+}
+
+.nav{
+  width:min(900px,calc(100% - 40px));
+  margin:0 auto;
+  padding:22px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-bottom:1px solid var(--border);
+}
+.brand-name{color:var(--teal);font-weight:700;letter-spacing:.12em}
+.free-label{color:var(--teal);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+
+main{
+  width:min(900px,calc(100% - 40px));
+  margin:0 auto;
+  padding:clamp(40px,8vw,80px) 0 42px;
+}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:12px;margin-bottom:18px;
+  color:var(--teal);font-size:12px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;
+}
+.eyebrow::before{content:"";width:46px;height:2px;background:var(--teal)}
+h1{
+  max-width:720px;margin-bottom:18px;color:var(--white);
+  font-family:"Libre Caslon Display",Georgia,serif;
+  font-size:clamp(36px,6vw,58px);font-weight:400;line-height:1.02;letter-spacing:-.02em;
+}
+h1 em{color:var(--teal);font-weight:400;font-style:normal}
+.lede{max-width:620px;margin-bottom:34px;color:var(--muted);font-size:clamp(16px,2vw,19px);line-height:1.6}
+
+/* Quiz card */
+.card{
+  max-width:760px;
+  padding:clamp(22px,4vw,36px);
+  border:1px solid var(--border);
+  background:rgba(255,253,248,.035);
+  backdrop-filter:blur(12px);
+}
+.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.progress-track{height:4px;background:rgba(247,240,223,.12);margin-bottom:26px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);width:0%;transition:width .3s ease}
+
+.q-text{color:var(--white);font-size:clamp(19px,2.4vw,24px);line-height:1.35;margin-bottom:22px}
+.options{display:grid;gap:10px}
+.option{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border:1px solid var(--border);
+  background:rgba(255,253,248,.02);cursor:pointer;transition:border-color .15s ease, background .15s ease;
+}
+.option:hover{border-color:var(--teal);background:rgba(47,214,200,.06)}
+.option.selected{border-color:var(--teal);background:rgba(47,214,200,.12)}
+.option-letter{
+  flex:0 0 26px;height:26px;display:grid;place-items:center;
+  border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;
+}
+.option.selected .option-letter{border-color:var(--teal);color:var(--teal)}
+.option-text{color:var(--ivory);font-size:15px;line-height:1.45}
+
+.nav-buttons{display:flex;justify-content:space-between;margin-top:28px;gap:12px}
+.btn{
+  border:0;padding:14px 22px;font-weight:700;letter-spacing:.02em;cursor:pointer;
+  transition:transform .15s ease, background .15s ease;
+}
+.btn-primary{background:var(--teal);color:#050505}
+.btn-primary:hover{transform:translateY(-1px);background:#4be3d6}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--ivory);border-color:var(--muted)}
+.btn-ghost:disabled{opacity:.3;cursor:not-allowed}
+
+/* Result screen */
+.result-score{
+  font-family:"Libre Caslon Display",Georgia,serif;
+  font-size:clamp(64px,12vw,120px);color:var(--teal);line-height:1;margin-bottom:8px;
+  font-variant-numeric:tabular-nums;
+}
+.result-tier{font-size:clamp(20px,3vw,28px);color:var(--white);margin-bottom:16px;opacity:0;transition:opacity .4s ease}
+.result-tier.visible{opacity:1}
+.result-copy{max-width:560px;color:var(--muted);font-size:16px;line-height:1.6;margin-bottom:30px;opacity:0;transition:opacity .4s ease}
+.result-copy.visible{opacity:1}
+.capture-wrap{opacity:0;transition:opacity .4s ease}
+.capture-wrap.visible{opacity:1}
+
+/* Calculating screen */
+.calc-wrap{text-align:center;padding:80px 0}
+.calc-label{color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:22px}
+.calc-number{
+  font-family:"Libre Caslon Display",Georgia,serif;
+  font-size:clamp(72px,14vw,140px);color:var(--teal);line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.calc-ring{
+  width:180px;height:180px;margin:26px auto 0;border-radius:50%;
+  background:conic-gradient(var(--teal) 0deg, rgba(247,240,223,.08) 0deg);
+  display:grid;place-items:center;position:relative;
+}
+.calc-ring::before{
+  content:"";position:absolute;inset:10px;border-radius:50%;background:var(--black);
+}
+.calc-ring-number{position:relative;z-index:1;font-family:"Libre Caslon Display",Georgia,serif;font-size:36px;color:var(--white);font-variant-numeric:tabular-nums}
+
+.form{max-width:520px;padding:0;border:0}
+.fields{display:grid;grid-template-columns:.8fr 1.2fr;gap:12px}
+label{display:grid;gap:8px;color:var(--ivory);font-size:12px;font-weight:700;letter-spacing:.04em}
+input{
+  min-width:0;width:100%;border:1px solid var(--border);padding:14px 15px;
+  background:rgba(255,253,248,.06);color:var(--white);outline:none;
+}
+input::placeholder{color:#8f897c}
+input:focus{border-color:var(--teal);box-shadow:0 0 0 2px rgba(47,214,200,.12)}
+.honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.submit{width:100%;margin-top:12px}
+.form-meta{display:flex;justify-content:space-between;gap:18px;margin-top:12px;color:#918a7c;font-size:11px;line-height:1.5}
+.form-message{min-height:20px;margin-top:10px;color:var(--error);font-size:13px}
+
+.hidden{display:none !important}
+
+/* Breakdown */
+.breakdown{max-width:760px;margin-top:36px;padding-top:28px;border-top:1px solid var(--border)}
+.breakdown-title{color:var(--white);font-family:"Libre Caslon Display",Georgia,serif;font-size:22px;margin-bottom:18px}
+.breakdown-list{display:grid;gap:12px}
+.breakdown-item{padding:14px 16px;border:1px solid var(--border);background:rgba(255,253,248,.02)}
+.breakdown-q{color:var(--muted);font-size:12px;letter-spacing:.04em;margin-bottom:6px}
+.breakdown-answer{color:var(--ivory);font-size:14px;line-height:1.5;margin-bottom:6px}
+.breakdown-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px}
+.breakdown-tag.sound{color:var(--teal);border:1px solid var(--teal)}
+.breakdown-tag.unsound{color:var(--muted);border:1px solid var(--border)}
+
+footer{
+  width:min(900px,calc(100% - 40px));margin:0 auto;padding:24px 0 34px;
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border-top:1px solid var(--border);color:#8e877a;font-size:12px;
+}
+
+@media(max-width:620px){
+  .fields{grid-template-columns:1fr}
+  .nav{width:min(100% - 28px,900px)}
+  main{width:min(100% - 28px,900px)}
+  footer{width:min(100% - 28px,900px)}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<nav class="nav" aria-label="Main navigation">
+  <span class="brand-name">GP73</span>
+  <span class="free-label">Free 2-Minute Test</span>
+</nav>
+
+<main>
+  <!-- INTRO -->
+  <section id="screen-intro">
+    <span class="eyebrow">The Truth Detector</span>
+    <h1>How well do you actually <em>test</em> what you're taught?</h1>
+    <p class="lede">8 quick questions. No right-answer pressure, just an honest look at whether you check teachings, prophecies, and preachers against Scripture, or just go with what sounds good. Get your Truth Score at the end.</p>
+    <button class="btn btn-primary" id="start-btn">START THE TEST</button>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="screen-quiz" class="hidden">
+    <div class="card">
+      <div class="progress-row">
+        <span id="progress-label">Question 1 of 8</span>
+        <span id="progress-percent">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+      <div class="nav-buttons">
+        <button class="btn btn-ghost" id="back-btn">BACK</button>
+        <button class="btn btn-primary" id="next-btn" disabled>NEXT</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALCULATING -->
+  <section id="screen-calc" class="hidden">
+    <div class="calc-wrap">
+      <div class="calc-label" id="calc-label">Calculating your Truth Score...</div>
+      <div class="calc-ring" id="calc-ring">
+        <div class="calc-ring-number" id="calc-ring-number">0%</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="screen-result" class="hidden">
+    <span class="eyebrow">Your Truth Score</span>
+    <div class="result-score" id="result-score">0%</div>
+    <div class="result-tier" id="result-tier"></div>
+    <p class="result-copy" id="result-copy"></p>
+
+    <div class="capture-wrap" id="capture-wrap">
+    <form class="form" id="capture-form" novalidate>
+      <div class="fields">
+        <label>First name
+          <input name="first_name" autocomplete="given-name" maxlength="80" placeholder="First name" required />
+        </label>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" maxlength="254" placeholder="Email address" required />
+        </label>
+      </div>
+      <label class="honeypot" aria-hidden="true">Company
+        <input name="company" tabindex="-1" autocomplete="off" />
+      </label>
+      <button class="btn btn-primary submit" id="submit-button" type="submit">SEND ME MY FULL RESULTS + BREAKDOWN</button>
+      <div class="form-meta">
+        <span>Free. Immediate. Unsubscribe anytime.</span>
+        <span>By continuing, you agree to receive relevant email.</span>
+      </div>
+      <div class="form-message" id="form-message" role="status" aria-live="polite"></div>
+    </form>
+    </div>
+
+    <div class="breakdown hidden" id="breakdown">
+      <div class="breakdown-title">Your Question-by-Question Breakdown</div>
+      <div class="breakdown-list" id="breakdown-list"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>&copy; 2026 Godsprisoner. All rights reserved.</span>
+</footer>
+</div>
+
+<script>
+(function(){
+  // ---- Questions: each option has a "sound" flag (true = discernment-based answer) ----
+  const questions = [
+    {
+      text: "A preacher says, \"God told me this directly for you,\" about something Scripture never addresses. What do you do?",
+      options: [
+        { text: "Trust it, they're anointed, they wouldn't lie to me.", sound: false },
+        { text: "Weigh it against Scripture and confirmed character before accepting it.", sound: true },
+        { text: "Feel uneasy but go along with it to avoid seeming disrespectful.", sound: false }
+      ]
+    },
+    {
+      text: "A verse gets quoted to comfort you, but it's lifted from a very different context. You...",
+      options: [
+        { text: "Look up the surrounding verses before deciding what it actually means.", sound: true },
+        { text: "Accept it because it felt encouraging in the moment.", sound: false },
+        { text: "Assume the person quoting it studied it already.", sound: false }
+      ]
+    },
+    {
+      text: "A prophecy about your future doesn't come true on the timeline given. Your response is to...",
+      options: [
+        { text: "Decide the timing was just 'delayed' without examining the prophecy itself.", sound: false },
+        { text: "Test it against Scripture's standard for prophetic accuracy, not just feelings.", sound: true },
+        { text: "Keep believing it no matter what, because doubting feels like a lack of faith.", sound: false }
+      ]
+    },
+    {
+      text: "You hear a teaching that makes you feel really good about staying exactly as you are. You...",
+      options: [
+        { text: "Enjoy it, feeling good is usually a sign it's from God.", sound: false },
+        { text: "Check whether it lines up with what Scripture actually requires of you.", sound: true },
+        { text: "Ignore the discomfort of not checking it, since the teacher seems sincere.", sound: false }
+      ]
+    },
+    {
+      text: "Someone challenges a belief you've held your whole life using an actual Bible passage. You...",
+      options: [
+        { text: "Get defensive and dismiss it without reading the passage yourself.", sound: false },
+        { text: "Actually open your Bible and study the passage in context before responding.", sound: true },
+        { text: "Change your mind instantly just because they quoted a verse at you.", sound: false }
+      ]
+    },
+    {
+      text: "A well-known name in ministry teaches something. How much weight does their reputation carry?",
+      options: [
+        { text: "Their reputation alone is enough, they've clearly been used by God.", sound: false },
+        { text: "Reputation matters, but it doesn't replace checking the actual content against Scripture.", sound: true },
+        { text: "None at all, I assume anyone well-known is probably compromised.", sound: false }
+      ]
+    },
+    {
+      text: "How often do you actually open Scripture yourself to verify something you were taught, rather than just trusting the source?",
+      options: [
+        { text: "Rarely, I trust the people teaching me.", sound: false },
+        { text: "Regularly, it's a normal part of how I process what I hear.", sound: true },
+        { text: "Only when something sounds obviously wrong.", sound: false }
+      ]
+    },
+    {
+      text: "A doctrine you're taught conflicts with a plain reading of a passage elsewhere in Scripture. You...",
+      options: [
+        { text: "Assume the plain reading must be the one that's wrong somehow.", sound: false },
+        { text: "Sit with the tension and study both passages until you understand how they fit.", sound: true },
+        { text: "Pick whichever one is easier to live with.", sound: false }
+      ]
+    }
+  ];
+
+  let current = 0;
+  let lastPercent = null;
+  const answers = new Array(questions.length).fill(null);
+
+  const screenIntro = document.getElementById("screen-intro");
+  const screenQuiz = document.getElementById("screen-quiz");
+  const screenCalc = document.getElementById("screen-calc");
+  const screenResult = document.getElementById("screen-result");
+  const startBtn = document.getElementById("start-btn");
+  const qText = document.getElementById("q-text");
+  const qOptions = document.getElementById("q-options");
+  const backBtn = document.getElementById("back-btn");
+  const nextBtn = document.getElementById("next-btn");
+  const progressLabel = document.getElementById("progress-label");
+  const progressPercent = document.getElementById("progress-percent");
+  const progressFill = document.getElementById("progress-fill");
+
+  startBtn.addEventListener("click", function(){
+    screenIntro.classList.add("hidden");
+    screenQuiz.classList.remove("hidden");
+    renderQuestion();
+  });
+
+  function renderQuestion(){
+    const q = questions[current];
+    qText.textContent = q.text;
+    qOptions.innerHTML = "";
+    const letters = ["A","B","C","D"];
+
+    q.options.forEach(function(opt, idx){
+      const div = document.createElement("div");
+      div.className = "option" + (answers[current] === idx ? " selected" : "");
+      div.innerHTML = '<span class="option-letter">' + letters[idx] + '</span><span class="option-text">' + opt.text + '</span>';
+      div.addEventListener("click", function(){
+        answers[current] = idx;
+        renderQuestion();
+      });
+      qOptions.appendChild(div);
+    });
+
+    progressLabel.textContent = "Question " + (current + 1) + " of " + questions.length;
+    const pct = Math.round(((current) / questions.length) * 100);
+    progressPercent.textContent = pct + "%";
+    progressFill.style.width = pct + "%";
+
+    backBtn.disabled = current === 0;
+    nextBtn.disabled = answers[current] === null;
+    nextBtn.textContent = current === questions.length - 1 ? "SEE MY SCORE" : "NEXT";
+  }
+
+  backBtn.addEventListener("click", function(){
+    if (current > 0){ current--; renderQuestion(); }
+  });
+
+  nextBtn.addEventListener("click", function(){
+    if (answers[current] === null) return;
+    if (current < questions.length - 1){
+      current++;
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  });
+
+  function showResult(){
+    let soundCount = 0;
+    answers.forEach(function(answerIdx, qIdx){
+      if (questions[qIdx].options[answerIdx].sound) soundCount++;
+    });
+    const percent = Math.round((soundCount / questions.length) * 100);
+    lastPercent = percent;
+
+    let tier, copy;
+    if (percent === 100) {
+      tier = "Fully Context-Driven";
+      copy = "Every answer you gave was the one that actually tests against Scripture instead of feeling or reputation. That is rare, and it is a real, working habit, not luck. Keep sharpening it, this is the standard worth staying at.";
+    } else if (percent >= 80) {
+      tier = "Context-Driven";
+      copy = "You default to testing what you hear against Scripture before accepting it. That's a real, working habit of discernment, keep sharpening it.";
+    } else if (percent >= 45) {
+      tier = "Developing Discernment";
+      copy = "You test some things and let others slide, usually based on how comfortable or how sincere the source feels. That inconsistency is exactly where deception gets in.";
+    } else {
+      tier = "Verse Collector";
+      copy = "Right now, feeling and reputation are doing more work than Scripture is in deciding what you believe. That's fixable, it starts with building the habit of checking, not just receiving.";
+    }
+
+    // Show the calculating screen first
+    screenQuiz.classList.add("hidden");
+    screenCalc.classList.remove("hidden");
+
+    const calcRingNumber = document.getElementById("calc-ring-number");
+    const calcRing = document.getElementById("calc-ring");
+    const calcLabel = document.getElementById("calc-label");
+
+    const duration = 2200; // ms
+    const startTime = performance.now();
+
+    // Simple, readable count up from 0 to the real percent. No scrambling.
+    function tick(now){
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // ease-out so it slows down gently as it arrives, but every number along
+      // the way is real and in order, easy to read the whole time
+      const eased = 1 - Math.pow(1 - t, 2);
+
+      let displayValue = Math.round(eased * percent);
+      if (t >= 1) displayValue = percent;
+
+      calcRingNumber.textContent = displayValue + "%";
+      calcRing.style.background = "conic-gradient(var(--teal) " + (displayValue * 3.6) + "deg, rgba(247,240,223,.08) 0deg)";
+
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        calcLabel.textContent = "Done.";
+        setTimeout(revealResult, 500);
+      }
+    }
+    requestAnimationFrame(tick);
+
+    function revealResult(){
+      document.getElementById("result-score").textContent = percent + "%";
+      document.getElementById("result-tier").textContent = tier;
+      document.getElementById("result-copy").textContent = copy;
+
+      screenCalc.classList.add("hidden");
+      screenResult.classList.remove("hidden");
+
+      // fade in tier, copy, and the capture form in sequence for a little drama
+      setTimeout(function(){ document.getElementById("result-tier").classList.add("visible"); }, 100);
+      setTimeout(function(){ document.getElementById("result-copy").classList.add("visible"); }, 400);
+      setTimeout(function(){ document.getElementById("capture-wrap").classList.add("visible"); }, 700);
+    }
+  }
+
+  // ---- Capture form: wired the same way Foundation Audit's form is wired ----
+  const form = document.getElementById("capture-form");
+  const submitButton = document.getElementById("submit-button");
+  const message = document.getElementById("form-message");
+  const params = new URLSearchParams(window.location.search);
+
+  function clean(value, max) {
+    return String(value || "").trim().slice(0, max);
+  }
+
+  const tracking = {
+    brand: "gp73",
+    creator: clean(params.get("creator") || "sedrick-davis", 80),
+    acquisition_source: clean(params.get("source") || params.get("utm_source") || "youtube", 80),
+    video_id: clean(params.get("video") || params.get("video_id") || "", 120),
+    campaign: clean(params.get("campaign") || params.get("utm_campaign") || "truth-detector", 120),
+    utm_source: clean(params.get("utm_source") || "", 120),
+    utm_medium: clean(params.get("utm_medium") || "", 120),
+    utm_campaign: clean(params.get("utm_campaign") || "", 120),
+    utm_content: clean(params.get("utm_content") || "", 120)
+  };
+
+  form.addEventListener("submit", async function(event){
+    event.preventDefault();
+    message.textContent = "";
+    message.style.color = "var(--teal)";
+
+    const formData = new FormData(form);
+    const firstName = clean(formData.get("first_name"), 80);
+    const email = clean(formData.get("email"), 254);
+
+    if (!firstName || !email || !email.includes("@")) {
+      message.style.color = "var(--error)";
+      message.textContent = "Enter your first name and a valid email address.";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "PREPARING YOUR BREAKDOWN...";
+
+    try {
+      const response = await fetch("/api/free-resource-capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          email,
+          company: clean(formData.get("company"), 120), // honeypot
+          resource_slug: "truth-detector",
+          consent: true,
+          page_path: window.location.pathname,
+          referrer: clean(document.referrer, 500),
+          truth_score: lastPercent,
+          ...tracking
+        })
+      });
+
+      const data = await response.json().catch(function(){ return {}; });
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "We could not prepare your breakdown right now.");
+      }
+
+      message.textContent = firstName + ", check your inbox, your full breakdown is on its way. It is also right below.";
+      submitButton.textContent = "BREAKDOWN SENT";
+      revealBreakdown();
+    } catch (error) {
+      message.style.color = "var(--error)";
+      message.textContent = error && error.message ? error.message : "Please try again.";
+      submitButton.disabled = false;
+      submitButton.textContent = "SEND ME MY FULL RESULTS + BREAKDOWN";
+    }
+  });
+
+  function revealBreakdown(){
+    const list = document.getElementById("breakdown-list");
+    list.innerHTML = "";
+    questions.forEach(function(q, idx){
+      const chosen = q.options[answers[idx]];
+      const item = document.createElement("div");
+      item.className = "breakdown-item";
+      item.innerHTML =
+        '<div class="breakdown-q">Question ' + (idx + 1) + '</div>' +
+        '<div class="breakdown-answer">' + q.text + '</div>' +
+        '<div class="breakdown-answer">Your answer: ' + chosen.text + '</div>' +
+        '<span class="breakdown-tag ' + (chosen.sound ? "sound" : "unsound") + '">' +
+        (chosen.sound ? "Tested well" : "Worth re-checking") + '</span>';
+      list.appendChild(item);
+    });
+    document.getElementById("breakdown").classList.remove("hidden");
+    document.getElementById("breakdown").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+})();
+</script>
+</body>
+</html>
