@@ -24,6 +24,14 @@ const RESOURCE_CONFIG = {
     inactiveMessage: "The Truth Detector delivery system is not active yet.",
     errorMessage: "We could not prepare your Truth Detector breakdown right now. Please try again.",
   },
+  "redefinition-test": {
+      tagEnv: "KIT_REDEFINITION_TEST_TAG_ID",
+      sequenceEnv: "KIT_REDEFINITION_TEST_DELIVERY_SEQUENCE_ID",
+      defaultCampaign: "redefinition-test",
+      defaultPagePath: "/free/redefinition-test",
+      inactiveMessage: "The Redefinition Test delivery system is not active yet.",
+      errorMessage: "We could not prepare your Redefinition Test results right now. Please try again.",
+  },
 };
 
 function text(value, maxLength) {
